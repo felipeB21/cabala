@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
+import { Providers } from "@/components/providers";
 
 const fontSans = DM_Sans({
   subsets: ["latin"],
@@ -35,7 +36,9 @@ export default function RootLayout({
         className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
       >
         <Header />
-        <main className="max-w-5xl mx-auto p-4 my-20">{children}</main>
+        <main className="max-w-5xl mx-auto p-4 my-20">
+          <Providers>{children}</Providers>
+        </main>
       </body>
     </html>
   );

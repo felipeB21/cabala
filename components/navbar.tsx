@@ -1,11 +1,12 @@
 "use client";
 
-import { Search, Swords } from "lucide-react";
+import { Search, Swords, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { label: "Partidos", href: "/matches", icon: Swords },
+  { label: "Tabla de Posiciones", href: "/leaderboard", icon: Trophy },
   { label: "Buscar", href: "/search", icon: Search },
 ];
 

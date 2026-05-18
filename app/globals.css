@@ -199,3 +199,7 @@
     letter-spacing: var(--tracking-normal);
   }
 }
+
+h5 {
+  @apply text-xl font-extrabold;
+}

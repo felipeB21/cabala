@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./navbar";
-import { SignIn } from "./auth/sign-in";
+import Session from "./auth/session";
 
 export default function Header() {
   return (
@@ -23,7 +23,7 @@ export default function Header() {
           </Link>
           <Navbar />
         </div>
-        <SignIn />
+        <Session />
       </div>
     </header>
   );

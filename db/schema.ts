@@ -18,6 +18,7 @@ export const user = pgTable("user", {
   id: text("id").primaryKey(),
 
   username: text("username").unique(),
+  displayUsername: text("display_username"),
 
   name: text("name").notNull(),
 
@@ -29,16 +30,6 @@ export const user = pgTable("user", {
 
   bio: text("bio"),
 
-  favoriteTeamId: integer("favorite_team_id"),
-
-  points: integer("points").default(0).notNull(),
-
-  correctPredictions: integer("correct_predictions").default(0).notNull(),
-
-  wrongPredictions: integer("wrong_predictions").default(0).notNull(),
-
-  streak: integer("streak").default(0).notNull(),
-
   createdAt: timestamp("created_at").defaultNow().notNull(),
 
   updatedAt: timestamp("updated_at")
@@ -46,6 +37,21 @@ export const user = pgTable("user", {
     .$onUpdate(() => new Date())
     .notNull(),
 });
+
+export const userStats = pgTable(
+  "user_stats",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    points: integer("points").default(0).notNull(),
+    correctPredictions: integer("correct_predictions").default(0).notNull(),
+    wrongPredictions: integer("wrong_predictions").default(0).notNull(),
+    streak: integer("streak").default(0).notNull(),
+  },
+  (table) => [index("user_stats_points_idx").on(table.points)],
+);
 
 export const session = pgTable(
   "session",
@@ -182,7 +188,7 @@ export const match = pgTable(
 
     awayScore: integer("away_score"),
 
-    winnerTeamId: integer("winner_team_id"),
+    winnerTeamId: integer("winner_team_id").references(() => team.id),
 
     isDraw: boolean("is_draw").default(false).notNull(),
 
@@ -235,17 +241,7 @@ export const prediction = pgTable(
         onDelete: "cascade",
       }),
 
-    /*
-      home
-      draw
-      away
-    */
-
     prediction: text("prediction").notNull(),
-
-    /*
-      puntos ganados cuando termina el partido
-    */
 
     pointsWon: integer("points_won").default(0).notNull(),
 
@@ -260,10 +256,7 @@ export const prediction = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
-    /*
-      SOLO una predicción por usuario
-      por partido
-    */
+    index("prediction_createdAt_idx").on(table.createdAt),
     uniqueIndex("prediction_user_match_unique").on(table.userId, table.matchId),
 
     index("prediction_matchId_idx").on(table.matchId),
@@ -334,7 +327,11 @@ export const predictionComment = pgTable(
    RELATIONS
 ========================= */
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(user, ({ many, one }) => ({
+  stats: one(userStats, {
+    fields: [user.id],
+    references: [userStats.userId],
+  }),
   sessions: many(session),
 
   accounts: many(account),
@@ -361,9 +358,8 @@ export const accountRelations = relations(account, ({ one }) => ({
 }));
 
 export const teamRelations = relations(team, ({ many }) => ({
-  homeMatches: many(match),
-
-  awayMatches: many(match),
+  homeMatches: many(match, { relationName: "home_team" }),
+  awayMatches: many(match, { relationName: "away_team" }),
 }));
 
 export const matchRelations = relations(match, ({ one, many }) => ({
@@ -424,3 +420,10 @@ export const predictionCommentRelations = relations(
     }),
   }),
 );
+
+export const userStatsRelations = relations(userStats, ({ one }) => ({
+  user: one(user, {
+    fields: [userStats.userId],
+    references: [user.id],
+  }),
+}));
