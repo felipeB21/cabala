@@ -7,6 +7,7 @@ import { Providers } from "@/components/providers";
 const fontSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+  preload: true,
 });
 
 const fontSerif = DM_Sans({

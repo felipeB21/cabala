@@ -2,7 +2,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { username } from "better-auth/plugins";
+import { username, admin } from "better-auth/plugins";
+import { userStats } from "@/db/schema";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -11,8 +12,8 @@ export const auth = betterAuth({
   }),
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       mapProfileToUser: async (profile) => {
         return {
           username: profile.email.split("@")[0],
@@ -21,8 +22,8 @@ export const auth = betterAuth({
       },
     },
     twitch: {
-      clientId: process.env.TWITCH_CLIENT_ID!,
-      clientSecret: process.env.TWITCH_CLIENT_SECRET!,
+      clientId: process.env.TWITCH_CLIENT_ID as string,
+      clientSecret: process.env.TWITCH_CLIENT_SECRET as string,
       mapProfileToUser: async (profile) => {
         return {
           username: profile.email.split("@")[0],
@@ -47,5 +48,24 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [username()],
+  plugins: [username(), admin()],
+
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            await db.insert(userStats).values({
+              userId: user.id,
+            });
+            console.log(
+              `Stats inicializados para el usuario: ${user.username}`,
+            );
+          } catch (error) {
+            console.error("Error inicializando stats del usuario:", error);
+          }
+        },
+      },
+    },
+  },
 });

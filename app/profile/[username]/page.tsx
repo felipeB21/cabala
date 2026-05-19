@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import UserProfileClient from "@/components/user/profile";
-import { getUserByUsername } from "@/api/user";
-import { Button } from "@/components/ui/button";
+import { getUserByUsername } from "@/actions/user";
 
 export default async function UserProfile({
   params,
@@ -19,7 +18,6 @@ export default async function UserProfile({
       >
         <UserProfileClient username={username} initialData={initialUserData} />
       </Suspense>
-      <Button>Seguir</Button>
     </div>
   );
 }
