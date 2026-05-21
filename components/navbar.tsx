@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { label: "Partidos", href: "/matches", icon: Swords },
-  { label: "Tabla de Posiciones", href: "/leaderboard", icon: Trophy },
+  { label: "Ranking", href: "/leaderboard", icon: Trophy },
   { label: "Buscar", href: "/search", icon: Search },
 ];
 

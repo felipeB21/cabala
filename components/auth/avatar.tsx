@@ -31,7 +31,7 @@ export function DropdownAvatar({ user }: { user: User }) {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-32">
+      <DropdownMenuContent className="w-32 z-90">
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href={`/profile/${user.username}`}>Perfil</Link>

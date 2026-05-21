@@ -327,6 +327,29 @@ export const predictionComment = pgTable(
   ],
 );
 
+export const matchComment = pgTable(
+  "match_comment",
+  {
+    id: text("id").primaryKey(),
+
+    matchId: text("match_id")
+      .notNull()
+      .references(() => match.id, { onDelete: "cascade" }),
+
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    content: text("content").notNull(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("match_comment_matchId_idx").on(table.matchId),
+    index("match_comment_userId_idx").on(table.userId),
+  ],
+);
+
 /* =========================
    RELATIONS
 ========================= */
@@ -351,6 +374,17 @@ export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
     fields: [session.userId],
     references: [user.id],
+  }),
+}));
+
+export const matchCommentRelations = relations(matchComment, ({ one }) => ({
+  user: one(user, {
+    fields: [matchComment.userId],
+    references: [user.id],
+  }),
+  match: one(match, {
+    fields: [matchComment.matchId],
+    references: [match.id],
   }),
 }));
 

@@ -1,10 +1,17 @@
 import { getFinishedMatches, getScheduledMatches } from "@/actions/matches";
 import { MatchCard } from "@/components/match-card";
 import { Trophy, Clock } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Partidos",
+  description:
+    "Todos los partidos de la Liga Profesional Argentina. Predecí resultados y seguí los partidos terminados.",
+};
 
 export default async function Matches() {
   const matches = await getScheduledMatches();
-  const finishedMatches = await getFinishedMatches;
+  const finishedMatches = await getFinishedMatches();
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
@@ -40,7 +47,7 @@ export default async function Matches() {
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {matches.map((match) => (
+          {finishedMatches.map((match) => (
             <MatchCard key={match.id} match={match} />
           ))}
         </div>

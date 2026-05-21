@@ -5,6 +5,7 @@ import { prediction, match, userStats } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getSession } from "@/lib/session";
+import { matchComment } from "@/db/schema";
 
 type PredictionValue = "home" | "draw" | "away";
 
@@ -107,4 +108,25 @@ export async function getUserPredictionForMatch(
   if (predictions.length === 0) return null;
 
   return predictions[0].prediction as PredictionValue;
+}
+
+export async function createMatchComment(
+  matchId: string,
+  content: string,
+): Promise<{ success: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session?.user) return { success: false, error: "No autenticado" };
+
+  if (!content.trim() || content.length > 500) {
+    return { success: false, error: "Comentario inválido" };
+  }
+
+  await db.insert(matchComment).values({
+    id: randomUUID(),
+    matchId,
+    userId: session.user.id,
+    content: content.trim(),
+  });
+
+  return { success: true };
 }

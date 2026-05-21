@@ -59,12 +59,7 @@ export function SignIn() {
             className="w-full flex items-center justify-center gap-2  "
             onClick={() => handleSignIn("twitch")}
           >
-            <Image
-              src="/discord.svg"
-              alt="Discord logo"
-              width={16}
-              height={16}
-            />
+            <Image src="/twitch.svg" alt="Twitch logo" width={16} height={16} />
             Continuar con Twitch
           </Button>
         </div>

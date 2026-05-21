@@ -1,6 +1,13 @@
 import { getScheduledMatches } from "@/actions/matches";
 import { MatchCard } from "@/components/match-card";
 import { Trophy } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Predicciones de fútbol argentino",
+  description:
+    "Predecí los próximos partidos de la Liga Profesional Argentina. Acumulá puntos y competí con otros fanáticos.",
+};
 
 export default async function Home() {
   const matches = await getScheduledMatches();
