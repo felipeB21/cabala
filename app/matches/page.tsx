@@ -1,0 +1,50 @@
+import { getFinishedMatches, getScheduledMatches } from "@/actions/matches";
+import { MatchCard } from "@/components/match-card";
+import { Trophy, Clock } from "lucide-react";
+
+export default async function Matches() {
+  const matches = await getScheduledMatches();
+  const finishedMatches = await getFinishedMatches;
+
+  return (
+    <div className="max-w-xl mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-4">
+        <Trophy className="w-4 h-4 text-muted-foreground" />
+        <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wider">
+          Próximos partidos
+        </h2>
+      </div>
+
+      {matches.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-12">
+          No hay partidos disponibles por ahora
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {matches.map((match) => (
+            <MatchCard key={match.id} match={match} />
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 mb-4 mt-8">
+        <Clock className="w-4 h-4 text-muted-foreground" />
+        <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wider">
+          Partidos terminados
+        </h2>
+      </div>
+
+      {finishedMatches.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-12">
+          No hay partidos terminados por ahora
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {matches.map((match) => (
+            <MatchCard key={match.id} match={match} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
