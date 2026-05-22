@@ -12,7 +12,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { searchUsers } from "@/actions/user";
-import { searchTeams } from "@/actions/teams";
+import { searchMatches } from "@/actions/teams";
+import { cn } from "@/lib/utils";
 
 export function SearchClient() {
   const [query, setQuery] = useState("");
@@ -26,14 +27,14 @@ export function SearchClient() {
     enabled,
   });
 
-  const { data: teams = [], isFetching: fetchingTeams } = useQuery({
-    queryKey: ["search", "teams", debouncedQuery],
-    queryFn: () => searchTeams(debouncedQuery),
+  const { data: matches = [], isFetching: fetchingMatches } = useQuery({
+    queryKey: ["search", "matches", debouncedQuery],
+    queryFn: () => searchMatches(debouncedQuery),
     enabled,
   });
 
-  const isPending = fetchingUsers || fetchingTeams;
-  const totalResults = users.length + teams.length;
+  const isPending = fetchingUsers || fetchingMatches;
+  const totalResults = users.length + matches.length;
 
   return (
     <div className="flex flex-col gap-5">
@@ -102,35 +103,38 @@ export function SearchClient() {
         </div>
       )}
 
-      {teams.length > 0 && (
+      {matches.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-            Equipos
+            Partidos
           </p>
-          {teams.map((team) => (
-            <div
-              key={team.id}
-              className="flex items-center gap-3 bg-background border border-border/50 rounded-lg px-3.5 py-3"
+          {matches.map((m) => (
+            <Link
+              key={m.id}
+              href={`/matches/${m.id}`}
+              className="flex items-center gap-3 bg-background border border-border/50 rounded-lg px-3.5 py-3 hover:bg-muted/50 transition-colors"
             >
-              <div className="w-9 h-9 rounded-full bg-muted shrink-0 relative overflow-hidden flex items-center justify-center text-xs font-medium text-muted-foreground">
-                {team.logo ? (
-                  <Image
-                    src={team.logo}
-                    alt={team.name}
-                    fill
-                    className="object-contain p-1"
-                  />
-                ) : (
-                  (team.shortName ?? team.name.slice(0, 3).toUpperCase())
-                )}
-              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium truncate">{team.name}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  Liga Profesional Argentina
+                <p className="text-[13px] font-medium truncate">
+                  {m.homeTeam.name} vs {m.awayTeam.name}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {m.status === "finished"
+                    ? `Finalizado · ${m.homeScore} - ${m.awayScore}`
+                    : `Próximo · ${new Date(m.startsAt).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`}
                 </p>
               </div>
-            </div>
+              <span
+                className={cn(
+                  "text-[11px] font-medium px-2 py-0.5 rounded-full",
+                  m.status === "finished"
+                    ? "bg-[#EAF3DE] text-[#3B6D11]"
+                    : "bg-blue-50 text-blue-600",
+                )}
+              >
+                {m.status === "finished" ? "Finalizado" : "Predecir"}
+              </span>
+            </Link>
           ))}
         </div>
       )}

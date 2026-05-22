@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Flame, Target, Trophy, Check, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import Link from "next/link";
 
 type UserData = Awaited<ReturnType<typeof getUserByUsername>>;
 type Prediction = NonNullable<UserData>["predictions"][number];
@@ -146,8 +147,9 @@ export default function UserProfileClient({
 
           <div className="flex flex-col gap-2">
             {user.predictions.map((pred) => (
-              <div
+              <Link
                 key={pred.id}
+                href={`/matches/${pred.matchId}`}
                 className="bg-background border border-border/50 rounded-lg px-3.5 py-3 flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
@@ -171,7 +173,7 @@ export default function UserProfileClient({
                   </p>
                 </div>
                 <PredictionBadge prediction={pred} />
-              </div>
+              </Link>
             ))}
           </div>
         </>

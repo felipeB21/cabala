@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/settings", "/api/"],
     },
-    sitemap: "https://cabala.app/sitemap.xml",
+    sitemap: "https://cabala.ar/sitemap.xml",
   };
 }

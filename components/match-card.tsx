@@ -10,6 +10,7 @@ import { useCreatePrediction } from "@/hooks/use-predictions";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
 
 type PredictionValue = "home" | "draw" | "away";
 
@@ -282,6 +283,13 @@ export function MatchCard({ match }: MatchCardProps) {
           Este partido ya terminó
         </p>
       )}
+
+      <Link
+        href={`/matches/${match.id}`}
+        className="mt-3 text-[11px] text-muted-foreground hover:text-foreground transition-colors text-center block"
+      >
+        Ver partido completo →
+      </Link>
     </div>
   );
 }

@@ -174,7 +174,7 @@ export default function OGImage() {
           letterSpacing: "0.5px",
         }}
       >
-        cabala.app
+        cabala.ar
       </div>
     </div>,
     { ...size },
