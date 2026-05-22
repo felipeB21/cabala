@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./navbar";
+import MobileMenu from "./mobile-menu";
 import Session from "./auth/session";
 
 export default function Header() {
@@ -21,9 +22,17 @@ export default function Header() {
             />
             Cábala
           </Link>
-          <Navbar />
+          <div className="hidden md:block">
+            <Navbar />
+          </div>
         </div>
-        <Session />
+
+        <div className="flex items-center gap-3">
+          <Session />
+          <div className="md:hidden">
+            <MobileMenu />
+          </div>
+        </div>
       </div>
     </header>
   );
