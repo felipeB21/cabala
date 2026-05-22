@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
+import Footer from "@/components/footer";
 
 const fontSans = DM_Sans({
   subsets: ["latin"],
@@ -38,18 +39,18 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Cábala" }],
   creator: "Cábala",
-  metadataBase: new URL("https://cabala.app"), // ← cambiá por tu dominio real
+  metadataBase: new URL("https://cabala.ar"),
   openGraph: {
     type: "website",
     locale: "es_AR",
-    url: "https://cabala.app",
+    url: "https://cabala.ar",
     siteName: "Cábala",
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
     images: [
       {
-        url: "/og-image.png", // creá una imagen 1200x630
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Cábala — Predicciones de fútbol argentino",
@@ -73,12 +74,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
+        className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <Header />
-        <main className="max-w-5xl mx-auto p-4 my-20">
+        <main className="max-w-5xl mx-auto p-4 my-20 flex-1 w-full">
           <Providers>{children}</Providers>
         </main>
+        <Footer />
         <Toaster />
       </body>
     </html>
