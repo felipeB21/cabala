@@ -18,6 +18,17 @@ import type {
   getMatchPredictionStats,
 } from "@/actions/matches";
 import { authClient } from "@/lib/auth-client";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+
+const COMMENTS_PER_PAGE = 5;
 
 type Stats = Awaited<ReturnType<typeof getMatchPredictionStats>>;
 type Comments = Awaited<ReturnType<typeof getMatchComments>>;
@@ -83,9 +94,16 @@ export function MatchDetailClient({
   const router = useRouter();
   const [selected, setSelected] = useState<PredictionValue | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [commentPage, setCommentPage] = useState(1);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<Comments>(initialComments);
   const { data: session } = authClient.useSession();
+
+  const totalCommentPages = Math.ceil(comments.length / COMMENTS_PER_PAGE);
+  const paginatedComments = comments.slice(
+    (commentPage - 1) * COMMENTS_PER_PAGE,
+    commentPage * COMMENTS_PER_PAGE,
+  );
 
   const { mutate: createPrediction, isPending: predicting } =
     useCreatePrediction();
@@ -411,7 +429,7 @@ export function MatchDetailClient({
         )}
 
         <div className="flex flex-col gap-4">
-          {comments.map((c) => (
+          {paginatedComments.map((c) => (
             <div key={c.id} className="flex gap-3">
               <Link href={`/profile/${c.user.username}`}>
                 <div className="w-8 h-8 rounded-full bg-muted shrink-0 relative overflow-hidden flex items-center justify-center text-xs font-medium text-muted-foreground">
@@ -450,6 +468,69 @@ export function MatchDetailClient({
             </div>
           ))}
         </div>
+
+        {totalCommentPages > 1 && (
+          <div className="mt-6">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCommentPage((p) => Math.max(1, p - 1))}
+                    className={cn(
+                      "cursor-pointer",
+                      commentPage === 1 && "pointer-events-none opacity-40",
+                    )}
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: totalCommentPages }, (_, i) => i + 1).map(
+                  (page) => {
+                    if (
+                      totalCommentPages > 5 &&
+                      page !== 1 &&
+                      page !== totalCommentPages &&
+                      Math.abs(page - commentPage) > 1
+                    ) {
+                      if (page === 2 || page === totalCommentPages - 1) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCommentPage(page)}
+                          isActive={commentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  },
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCommentPage((p) => Math.min(totalCommentPages, p + 1))
+                    }
+                    className={cn(
+                      "cursor-pointer",
+                      commentPage === totalCommentPages &&
+                        "pointer-events-none opacity-40",
+                    )}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </div>
   );

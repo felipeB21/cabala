@@ -41,18 +41,18 @@ export default function SettingsForm({ session }: SettingsFormProps) {
     setIsUpdating(true);
 
     try {
-      await authClient
-        .updateUser({
-          name: form.name,
-          username: form.username,
-          bio: form.bio,
-        } as Parameters<typeof authClient.updateUser>[0])
-        .then(() => {
-          toast.success("Perfil actualizado");
-        })
-        .catch((err) => {
-          toast.error(err?.message ?? "Error inesperado");
-        });
+      const res = await authClient.updateUser({
+        name: form.name,
+        username: form.username,
+        bio: form.bio,
+      } as Parameters<typeof authClient.updateUser>[0]);
+
+      if (res.error) {
+        toast.error(res.error.message ?? "Error inesperado");
+        return;
+      }
+
+      toast.success("Perfil actualizado, refresca la pagina.");
     } catch {
       toast.error("Error inesperado");
     } finally {
