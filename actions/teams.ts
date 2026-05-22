@@ -21,6 +21,14 @@ export async function searchMatches(query: string) {
       ),
     orderBy: (match, { desc }) => [desc(match.startsAt)],
     limit: 10,
+    columns: {
+      id: true,
+      slug: true,
+      status: true,
+      homeScore: true,
+      awayScore: true,
+      startsAt: true,
+    },
     with: {
       homeTeam: {
         columns: { id: true, name: true, shortName: true, logo: true },

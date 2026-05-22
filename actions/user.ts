@@ -15,6 +15,9 @@ export async function getUserByUsername(username: string) {
         limit: 10,
         with: {
           match: {
+            columns: {
+              slug: true,
+            },
             with: {
               homeTeam: true,
               awayTeam: true,

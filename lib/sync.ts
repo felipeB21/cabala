@@ -15,6 +15,24 @@ import type { SportsDBEvent, SportsDBTable } from "@/types/sportsdb";
 import { randomUUID } from "crypto";
 import { eq, and, inArray } from "drizzle-orm";
 
+function generateSlug(
+  homeTeam: string,
+  awayTeam: string,
+  date: string,
+): string {
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+
+  const dateStr = date.replace(/-/g, "");
+  return `${normalize(homeTeam)}-vs-${normalize(awayTeam)}-${dateStr}`;
+}
+
 async function ensureTeamExists(apiId: string): Promise<boolean> {
   const existing = await db
     .select()
@@ -145,6 +163,11 @@ export async function syncMatches(): Promise<{
         .values({
           id: randomUUID(),
           apiId: Number(event.idEvent),
+          slug: generateSlug(
+            event.strHomeTeam,
+            event.strAwayTeam,
+            event.dateEvent,
+          ),
           homeTeamId: Number(event.idHomeTeam),
           awayTeamId: Number(event.idAwayTeam),
           startsAt: parseStartsAt(event.dateEvent, event.strTime),

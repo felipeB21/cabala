@@ -111,7 +111,7 @@ export function SearchClient() {
           {matches.map((m) => (
             <Link
               key={m.id}
-              href={`/matches/${m.id}`}
+              href={`/matches/${m.slug ?? m.id}`}
               className="flex items-center gap-3 bg-background border border-border/50 rounded-lg px-3.5 py-3 hover:bg-muted/50 transition-colors"
             >
               <div className="flex-1 min-w-0">

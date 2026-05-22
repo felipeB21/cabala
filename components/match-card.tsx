@@ -285,7 +285,7 @@ export function MatchCard({ match }: MatchCardProps) {
       )}
 
       <Link
-        href={`/matches/${match.id}`}
+        href={`/matches/${match.slug}`}
         className="mt-3 text-[11px] text-muted-foreground hover:text-foreground transition-colors text-center block"
       >
         Ver partido completo →

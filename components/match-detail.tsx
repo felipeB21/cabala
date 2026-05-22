@@ -91,7 +91,6 @@ export function MatchDetailClient({
         toast.error(res.error ?? "Error al comentar");
         return;
       }
-      // Agregar optimisticamente al estado local
       setComments((prev) => [
         {
           id: crypto.randomUUID(),
@@ -372,7 +371,6 @@ export function MatchDetailClient({
         </div>
       )}
 
-      {/* Comments */}
       <div className="bg-background border border-border/50 rounded-xl p-5">
         <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-4">
           Comentarios

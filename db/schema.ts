@@ -182,7 +182,7 @@ export const match = pgTable(
     awayTeamId: integer("away_team_id")
       .notNull()
       .references(() => team.id),
-
+    slug: text("slug").unique(),
     startsAt: timestamp("starts_at").notNull(),
 
     status: text("status").notNull(),

@@ -149,7 +149,7 @@ export default function UserProfileClient({
             {user.predictions.map((pred) => (
               <Link
                 key={pred.id}
-                href={`/matches/${pred.matchId}`}
+                href={`/matches/${pred.match.slug ?? pred.matchId}`}
                 className="bg-background border border-border/50 rounded-lg px-3.5 py-3 flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
