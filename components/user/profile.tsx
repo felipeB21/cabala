@@ -82,6 +82,7 @@ export default function UserProfileClient({
               src={user.image}
               alt={`@${user.username}`}
               fill
+              sizes="72px"
               className="object-cover"
               priority
             />

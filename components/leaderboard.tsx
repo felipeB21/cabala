@@ -31,6 +31,7 @@ function Avatar({
           src={user.image}
           alt={user.name ?? ""}
           fill
+          sizes="40px"
           className="object-cover"
         />
       </div>

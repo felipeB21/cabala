@@ -33,7 +33,13 @@ function TeamLogo({ logo, name }: { logo: string | null; name: string }) {
   if (logo) {
     return (
       <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted">
-        <Image src={logo} alt={name} fill className="object-contain p-1" />
+        <Image
+          src={logo}
+          alt={name}
+          fill
+          sizes="56px"
+          className="object-contain p-1"
+        />
       </div>
     );
   }

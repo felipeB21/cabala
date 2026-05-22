@@ -84,6 +84,7 @@ export function SearchClient() {
                     src={user.image}
                     alt={user.name ?? ""}
                     fill
+                    sizes="36px"
                     className="object-cover"
                   />
                 ) : (

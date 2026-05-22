@@ -23,9 +23,17 @@ export default async function Matches() {
       </div>
 
       {matches.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">
-          No hay partidos disponibles por ahora
-        </p>
+        <div className="flex flex-col items-center gap-2 py-12">
+          <p className="text-sm text-muted-foreground text-center">
+            No hay partidos disponibles por ahora
+          </p>
+          <a
+            href="#terminados"
+            className="text-sm text-blue-500 hover:underline"
+          >
+            Ver partidos terminados ↓
+          </a>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
           {matches.map((match) => (
@@ -34,7 +42,7 @@ export default async function Matches() {
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-4 mt-8">
+      <div id="terminados" className="flex items-center gap-2 mb-4 mt-8">
         <Clock className="w-4 h-4 text-muted-foreground" />
         <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wider">
           Partidos terminados

@@ -69,6 +69,7 @@ export default function SettingsForm({ session }: SettingsFormProps) {
               src={session.image}
               alt="Imagen de perfil"
               fill
+              sizes="56px"
               className="object-cover"
             />
           ) : (
