@@ -420,6 +420,7 @@ export function MatchDetailClient({
                       src={c.user.image}
                       alt={c.user.name ?? ""}
                       fill
+                      sizes="32px"
                       className="object-cover"
                     />
                   ) : (
