@@ -43,7 +43,7 @@ export function SearchClient() {
           <Search className="w-4 h-4" />
         </InputGroupAddon>
         <InputGroupInput
-          placeholder="Buscar usuarios o equipos..."
+          placeholder="Buscar usuarios o partidos..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus

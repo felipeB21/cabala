@@ -24,6 +24,12 @@ interface MatchCardProps {
   match: MatchWithTeams;
 }
 
+const COMPETITION_LABELS: Record<string, string> = {
+  liga: "Liga Profesional",
+  libertadores: "Copa Libertadores",
+  sudamericana: "Copa Sudamericana",
+};
+
 export function MatchCard({ match }: MatchCardProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<PredictionValue | null>(null);
@@ -90,7 +96,7 @@ export function MatchCard({ match }: MatchCardProps) {
     <div className="bg-background rounded-xl border border-border/50 p-5">
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-4">
         <Trophy className="w-3 h-3" />
-        Liga Profesional
+        {COMPETITION_LABELS[match.competition] ?? match.competition}
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-5">

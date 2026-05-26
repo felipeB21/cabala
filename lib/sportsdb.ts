@@ -6,6 +6,8 @@ import type {
 
 const BASE_URL = "https://www.thesportsdb.com/api/v1/json/123";
 const ARGENTINA_LEAGUE_ID = "4406";
+const LIBERTADORES_ID = "4501";
+const SUDAMERICANA_ID = "4724";
 
 async function fetcher<T>(endpoint: string): Promise<T> {
   const res = await fetch(`${BASE_URL}/${endpoint}`);
@@ -19,6 +21,22 @@ async function fetcher<T>(endpoint: string): Promise<T> {
 
 export async function getUpcomingMatches(): Promise<SportsDBEventsResponse> {
   return fetcher(`eventsnextleague.php?id=${ARGENTINA_LEAGUE_ID}`);
+}
+
+export async function getUpcomingLibertadores(): Promise<SportsDBEventsResponse> {
+  return fetcher(`eventsnextleague.php?id=${LIBERTADORES_ID}`);
+}
+
+export async function getPastLibertadores(): Promise<SportsDBEventsResponse> {
+  return fetcher(`eventspastleague.php?id=${LIBERTADORES_ID}`);
+}
+
+export async function getUpcomingSudamericana(): Promise<SportsDBEventsResponse> {
+  return fetcher(`eventsnextleague.php?id=${SUDAMERICANA_ID}`);
+}
+
+export async function getPastSudamericana(): Promise<SportsDBEventsResponse> {
+  return fetcher(`eventspastleague.php?id=${SUDAMERICANA_ID}`);
 }
 
 export async function getPastMatches(): Promise<SportsDBEventsResponse> {

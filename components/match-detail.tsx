@@ -43,7 +43,7 @@ interface MatchDetailClientProps {
 function TeamLogo({ logo, name }: { logo: string | null; name: string }) {
   if (logo) {
     return (
-      <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted">
+      <div className="relative w-14 h-14 overflow-hidden">
         <Image
           src={logo}
           alt={name}

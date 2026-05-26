@@ -10,7 +10,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 
-type AuthProvider = "google" | "twitch";
+type AuthProvider = "google" | "twitch" | "kick";
 
 export function SignIn() {
   const handleSignIn = async (provider: AuthProvider) => {
@@ -61,6 +61,15 @@ export function SignIn() {
           >
             <Image src="/twitch.svg" alt="Twitch logo" width={16} height={16} />
             Continuar con Twitch
+          </Button>
+
+          <Button
+            type="button"
+            className="w-full flex items-center justify-center gap-2 bg-black"
+            onClick={() => handleSignIn("kick")}
+          >
+            <Image src="/kick.jpeg" alt="Kick logo" width={20} height={20} />
+            Continuar con Kick
           </Button>
         </div>
       </DialogContent>

@@ -5,6 +5,10 @@ import {
   getPastMatches,
   getLeagueTable,
   getTeamById,
+  getUpcomingLibertadores,
+  getPastLibertadores,
+  getUpcomingSudamericana,
+  getPastSudamericana,
 } from "@/lib/sportsdb";
 import {
   calculateMatchOdds,
@@ -43,9 +47,20 @@ async function ensureTeamExists(apiId: string): Promise<boolean> {
   if (existing.length > 0) return true;
 
   const res = await getTeamById(apiId);
-  if (!res.teams?.[0]) return false;
+  if (!res.teams?.[0]) {
+    console.warn(`⚠️ No se encontró el equipo con apiId ${apiId}`);
+    return false;
+  }
 
   const t = res.teams[0];
+
+  if (Number(t.idTeam) !== Number(apiId)) {
+    console.warn(
+      `⚠️ ID mismatch: pedí ${apiId}, recibí ${t.idTeam} (${t.strTeam})`,
+    );
+    return false;
+  }
+
   await db
     .insert(team)
     .values({
@@ -58,9 +73,9 @@ async function ensureTeamExists(apiId: string): Promise<boolean> {
     })
     .onConflictDoNothing();
 
+  console.log(`➕ Equipo insertado: ${t.strTeam}`);
   return true;
 }
-
 function buildFormMap(pastEvents: SportsDBEvent[]): Map<string, TeamForm> {
   const formMap = new Map<string, TeamForm>();
   const sorted = [...pastEvents].sort(
@@ -117,18 +132,50 @@ export async function syncMatches(): Promise<{
   inserted: number;
   skipped: number;
 }> {
-  const [nextRes, pastRes, tableRes] = await Promise.all([
+  const [
+    nextRes,
+    nextLibRes,
+    nextSudRes,
+    pastRes,
+    pastLibRes,
+    pastSudRes,
+    tableRes,
+  ] = await Promise.all([
     getUpcomingMatches(),
+    getUpcomingLibertadores(),
+    getUpcomingSudamericana(),
     getPastMatches(),
+    getPastLibertadores(),
+    getPastSudamericana(),
     getLeagueTable(),
   ]);
 
-  if (!nextRes.events) return { inserted: 0, skipped: 0 };
+  const allUpcoming = [
+    ...(nextRes.events ?? []).map((e) => ({
+      ...e,
+      competition: "liga" as const,
+    })),
+    ...(nextLibRes.events ?? []).map((e) => ({
+      ...e,
+      competition: "libertadores" as const,
+    })),
+    ...(nextSudRes.events ?? []).map((e) => ({
+      ...e,
+      competition: "sudamericana" as const,
+    })),
+  ];
+
+  const allPast = [
+    ...(pastRes.events ?? []),
+    ...(pastLibRes.events ?? []),
+    ...(pastSudRes.events ?? []),
+  ];
+
+  if (allUpcoming.length === 0) return { inserted: 0, skipped: 0 };
   if (!tableRes.table)
     throw new Error("No se pudo obtener la tabla de posiciones");
 
-  const pastEvents = pastRes.events ?? [];
-  const formMap = buildFormMap(pastEvents);
+  const formMap = buildFormMap(allPast);
   const tableMap = new Map<string, SportsDBTable>(
     tableRes.table.map((t) => [t.idTeam, t]),
   );
@@ -136,11 +183,12 @@ export async function syncMatches(): Promise<{
   let inserted = 0;
   let skipped = 0;
 
-  for (const event of nextRes.events) {
+  for (const event of allUpcoming) {
     const homeExists = await ensureTeamExists(event.idHomeTeam);
     const awayExists = await ensureTeamExists(event.idAwayTeam);
 
     if (!homeExists || !awayExists) {
+      console.warn(`⚠️ Skipping ${event.strHomeTeam} vs ${event.strAwayTeam}`);
       skipped++;
       continue;
     }
@@ -168,6 +216,7 @@ export async function syncMatches(): Promise<{
             event.strAwayTeam,
             event.dateEvent,
           ),
+          competition: event.competition,
           homeTeamId: Number(event.idHomeTeam),
           awayTeamId: Number(event.idAwayTeam),
           startsAt: parseStartsAt(event.dateEvent, event.strTime),
@@ -191,10 +240,21 @@ export async function syncMatches(): Promise<{
 }
 
 export async function syncResults(): Promise<{ updated: number }> {
-  const pastRes = await getPastMatches();
-  if (!pastRes.events) return { updated: 0 };
+  const [pastRes, pastLibRes, pastSudRes] = await Promise.all([
+    getPastMatches(),
+    getPastLibertadores(),
+    getPastSudamericana(),
+  ]);
 
-  const apiIds = pastRes.events.map((e) => Number(e.idEvent));
+  const allPastEvents = [
+    ...(pastRes.events ?? []),
+    ...(pastLibRes.events ?? []),
+    ...(pastSudRes.events ?? []),
+  ];
+
+  if (allPastEvents.length === 0) return { updated: 0 };
+
+  const apiIds = allPastEvents.map((e) => Number(e.idEvent));
   const pendingMatches = await db
     .select()
     .from(match)
@@ -205,7 +265,7 @@ export async function syncResults(): Promise<{ updated: number }> {
   let updated = 0;
 
   for (const dbMatch of pendingMatches) {
-    const event = pastRes.events.find(
+    const event = allPastEvents.find(
       (e) => Number(e.idEvent) === dbMatch.apiId,
     );
     if (!event) continue;
@@ -226,13 +286,7 @@ export async function syncResults(): Promise<{ updated: number }> {
 
     await db
       .update(match)
-      .set({
-        status: "finished",
-        homeScore,
-        awayScore,
-        isDraw,
-        winnerTeamId,
-      })
+      .set({ status: "finished", homeScore, awayScore, isDraw, winnerTeamId })
       .where(eq(match.id, dbMatch.id));
 
     const predictions = await db

@@ -31,11 +31,21 @@ export const auth = betterAuth({
         };
       },
     },
+    kick: {
+      clientId: process.env.KICK_CLIENT_ID as string,
+      clientSecret: process.env.KICK_CLIENT_SECRET as string,
+      mapProfileToUser: async (profile) => {
+        return {
+          username: profile.email.split("@")[0],
+          displayUsername: profile.email.split("@")[0],
+        };
+      },
+    },
   },
   account: {
     accountLinking: {
       enabled: true,
-      trustedProviders: ["google", "twitch"],
+      trustedProviders: ["google", "twitch", "kick"],
     },
   },
   user: {

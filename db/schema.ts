@@ -183,10 +183,10 @@ export const match = pgTable(
       .notNull()
       .references(() => team.id),
     slug: text("slug").unique(),
+    competition: text("competition").notNull().default("liga"),
     startsAt: timestamp("starts_at").notNull(),
 
     status: text("status").notNull(),
-    // scheduled | live | finished
 
     homeScore: integer("home_score"),
 

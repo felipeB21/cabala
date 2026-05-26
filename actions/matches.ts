@@ -9,6 +9,7 @@ export interface MatchWithTeams {
   id: string;
   apiId: number;
   slug: string | null;
+  competition: string;
   startsAt: Date;
   status: string;
   homeScore: number | null;
@@ -46,6 +47,7 @@ export async function getScheduledMatches(): Promise<MatchWithTeams[]> {
       id: match.id,
       apiId: match.apiId,
       slug: match.slug,
+      competition: match.competition,
       startsAt: match.startsAt,
       status: match.status,
       homeScore: match.homeScore,
@@ -114,6 +116,7 @@ export async function getFinishedMatches(): Promise<MatchWithTeams[]> {
       id: match.id,
       apiId: match.apiId,
       slug: match.slug,
+      competition: match.competition,
       startsAt: match.startsAt,
       status: match.status,
       homeScore: match.homeScore,
@@ -181,6 +184,7 @@ export async function getMatchById(id: string): Promise<MatchWithTeams | null> {
       id: match.id,
       apiId: match.apiId,
       slug: match.slug,
+      competition: match.competition,
       startsAt: match.startsAt,
       status: match.status,
       homeScore: match.homeScore,
@@ -282,6 +286,7 @@ export async function getMatchBySlug(
     .select({
       id: match.id,
       slug: match.slug,
+      competition: match.competition,
       apiId: match.apiId,
       startsAt: match.startsAt,
       status: match.status,

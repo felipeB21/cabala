@@ -20,7 +20,7 @@ export default function MobileMenu() {
     <>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="text-white p-1"
+        className="text-white p-1 w-8.5 h-8.5 flex items-center justify-center"
         aria-label="Menú"
       >
         {open ? <X size={22} /> : <Menu size={22} />}

@@ -36,7 +36,7 @@ export default function SettingsForm({ session }: SettingsFormProps) {
     setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsUpdating(true);
 
@@ -82,7 +82,7 @@ export default function SettingsForm({ session }: SettingsFormProps) {
           <p className="text-sm font-medium">{session.name}</p>
           <p className="text-xs text-muted-foreground">@{session.username}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            La foto se actualiza desde Google o Twitch
+            La foto se actualiza desde Google, Twitch o Kick
           </p>
         </div>
       </div>

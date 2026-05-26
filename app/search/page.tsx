@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Buscar",
-  description: "Buscá usuarios y partidos en Cábala.",
+  description: "Buscá usuarios y partidos de fútbol en Cábala.",
 };
 
 export default function SearchPage() {
@@ -12,7 +12,7 @@ export default function SearchPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold tracking-tight mb-1">Buscar</h1>
         <p className="text-sm text-muted-foreground">
-          Encontrá usuarios y equipos
+          Encontrá usuarios y partidos de fútbol
         </p>
       </div>
       <SearchClient />
