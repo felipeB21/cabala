@@ -4,7 +4,7 @@ import { Trophy } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Predicciones de fútbol argentino",
+  title: "Predicciones de fútbol argentino | Cábala",
   description:
     "Predecí los próximos partidos de la Liga Profesional Argentina. Acumulá puntos y competí con otros fanáticos.",
 };

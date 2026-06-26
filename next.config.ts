@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
       {
         hostname: "r2.thesportsdb.com",
       },
+      {
+        hostname: "www.thesportsdb.com",
+      },
+      {
+        hostname: "files.kick.com",
+      },
     ],
   },
 };
