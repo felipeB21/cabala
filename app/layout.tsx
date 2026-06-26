@@ -68,21 +68,14 @@ export const metadata: Metadata = {
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Cábala — Predicciones de fútbol argentino",
-      },
-    ],
+    
   },
   twitter: {
     card: "summary_large_image",
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
-    images: ["/og-image.png"],
+   
   },
 };
 
