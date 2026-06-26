@@ -39,27 +39,27 @@ export const metadata: Metadata = {
     "predicciones deportivas",
   ],
   applicationName: "Cábala",
-  authors: [
+authors: [
   {
     name: "Felipe Bolgar",
-    url: "https://www.linkedin.com/in/felipebolgar/"
-  }
-]
-  creator: "Felipe Bolgar",
-  category: "Sports",
-  robots: {
+    url: "https://www.linkedin.com/in/felipebolgar/",
+  },
+],
+creator: "Felipe Bolgar",
+category: "Sports",
+robots: {
   index: true,
   follow: true,
 },
-    alternates: {
+alternates: {
   canonical: "/",
 },
-  icons: {
+icons: {
   icon: "/favicon.ico",
   shortcut: "/favicon.ico",
   apple: "/apple-touch-icon.png",
 },
-  metadataBase: new URL("https://cabala.ar"),
+metadataBase: new URL("https://cabala.ar"),
   openGraph: {
     type: "website",
     locale: "es_AR",
