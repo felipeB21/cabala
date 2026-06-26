@@ -38,8 +38,27 @@ export const metadata: Metadata = {
     "pronosticos futbol",
     "predicciones deportivas",
   ],
-  authors: [{ name: "Cábala" }],
-  creator: "Cábala",
+  applicationName: "Cábala",
+  authors: [
+  {
+    name: "Felipe Bolgar",
+    url: "https://www.linkedin.com/in/felipebolgar/"
+  }
+]
+  creator: "Felipe Bolgar",
+  category: "Sports",
+  robots: {
+  index: true,
+  follow: true,
+},
+    alternates: {
+  canonical: "/",
+},
+  icons: {
+  icon: "/favicon.ico",
+  shortcut: "/favicon.ico",
+  apple: "/apple-touch-icon.png",
+},
   metadataBase: new URL("https://cabala.ar"),
   openGraph: {
     type: "website",
