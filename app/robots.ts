@@ -8,5 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ["/settings", "/api/"],
     },
     sitemap: "https://cabala.ar/sitemap.xml",
+    host: "https://cabala.ar",
   };
 }
