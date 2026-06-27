@@ -25,45 +25,75 @@ const fontMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cabala.ar"),
+
   title: {
     default: "Cábala — Predicciones de fútbol argentino",
     template: "%s | Cábala",
   },
+
   description:
     "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos. Liga Profesional Argentina.",
+
   keywords: [
     "predicciones fútbol",
     "fútbol argentino",
     "liga profesional argentina",
-    "pronosticos futbol",
+    "pronósticos fútbol",
     "predicciones deportivas",
   ],
-  authors: [{ name: "Cábala" }],
-  creator: "Cábala",
-  metadataBase: new URL("https://cabala.ar"),
+
+  applicationName: "Cábala",
+
+  authors: [
+    {
+      name: "Felipe Bolgar",
+      url: "https://www.linkedin.com/in/felipebolgar/",
+    },
+  ],
+
+  creator: "Felipe Bolgar",
+
+  category: "Sports",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
+  alternates: {
+    canonical: "/",
+  },
+
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
+
+  manifest: "/manifest.json",
+
   openGraph: {
     type: "website",
     locale: "es_AR",
-    url: "https://cabala.ar",
+    url: "/",
     siteName: "Cábala",
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Cábala — Predicciones de fútbol argentino",
-      },
-    ],
   },
+
   twitter: {
     card: "summary_large_image",
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
-    images: ["/og-image.png"],
   },
 };
 
