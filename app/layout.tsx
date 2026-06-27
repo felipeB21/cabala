@@ -38,28 +38,9 @@ export const metadata: Metadata = {
     "pronosticos futbol",
     "predicciones deportivas",
   ],
-  applicationName: "Cábala",
-authors: [
-  {
-    name: "Felipe Bolgar",
-    url: "https://www.linkedin.com/in/felipebolgar/",
-  },
-],
-creator: "Felipe Bolgar",
-category: "Sports",
-robots: {
-  index: true,
-  follow: true,
-},
-alternates: {
-  canonical: "/",
-},
-icons: {
-  icon: "/favicon.ico",
-  shortcut: "/favicon.ico",
-  apple: "/apple-touch-icon.png",
-},
-metadataBase: new URL("https://cabala.ar"),
+  authors: [{ name: "Cábala" }],
+  creator: "Cábala",
+  metadataBase: new URL("https://cabala.ar"),
   openGraph: {
     type: "website",
     locale: "es_AR",
@@ -68,14 +49,21 @@ metadataBase: new URL("https://cabala.ar"),
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
-    
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Cábala — Predicciones de fútbol argentino",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Cábala — Predicciones de fútbol argentino",
     description:
       "Predecí los resultados del fútbol argentino, acumulá puntos y competí con todos.",
-   
+    images: ["/og-image.png"],
   },
 };
 
