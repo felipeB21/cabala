@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "@/components/footer";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const fontSans = DM_Sans({
   subsets: ["latin"],
@@ -133,6 +134,7 @@ export default function RootLayout({
         <Footer />
         <Toaster />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
