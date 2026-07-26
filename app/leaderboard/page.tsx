@@ -13,8 +13,10 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="max-w-xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold tracking-tight mb-1">Ranking</h1>
+      <div className="text-center mb-6">
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight mb-1">
+          Ranking
+        </h1>
         <p className="text-sm text-muted-foreground">
           Los mejores predictores de la temporada
         </p>

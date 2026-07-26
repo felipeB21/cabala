@@ -1,5 +1,6 @@
 import { getScheduledMatches } from "@/actions/matches";
 import { MatchCard } from "@/components/match-card";
+import { StaggerFade, StaggerFadeItem } from "@/components/motion/stagger-fade";
 import { Trophy } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -15,20 +16,20 @@ export default async function Home() {
   return (
     <main className="max-w-xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight mb-1">
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight mb-3">
           Predicciones de fútbol
         </h1>
         <p className="text-sm text-muted-foreground">
           Predecí los resultados, acumulá puntos y competí con todos.
         </p>
         <p className="text-xs text-muted-foreground mt-2">
-          Por ahora mostramos un partido por día — esta app la mantiene un solo
-          programador.{" "}
+          Por ahora mostramos un partido por día — esta app la mantiene un
+          solo programador.{" "}
           <a
             href="https://cafecito.app/felipebolgar"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-primary hover:underline"
           >
             Si te gusta, invitame un cafecito ☕
           </a>
@@ -47,11 +48,13 @@ export default async function Home() {
           No hay partidos disponibles por ahora
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <StaggerFade className="flex flex-col gap-3">
           {matches.map((match) => (
-            <MatchCard key={match.id} match={match} />
+            <StaggerFadeItem key={match.id}>
+              <MatchCard match={match} />
+            </StaggerFadeItem>
           ))}
-        </div>
+        </StaggerFade>
       )}
     </main>
   );

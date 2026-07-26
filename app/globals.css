@@ -2,132 +2,112 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  "Ticket & Terrace" — grounded in cábala (the matchday ritual a fan
+  performs for luck) and the paper feel of an Argentine match ticket.
+  Dark mode is the primary experience: cream ticket cards on a stadium-
+  at-night navy. Light mode keeps the same ink/gold/brick/celeste
+  language on a warmer parchment surface.
+*/
+
 :root {
-  --background: oklch(0.9789 0.0082 121.6272);
-  --foreground: oklch(0 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0.5106 0.2301 276.9656);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.7038 0.123 182.5025);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.9551 0 0);
-  --muted-foreground: oklch(0.3211 0 0);
-  --accent: oklch(0.7686 0.1647 70.0804);
-  --accent-foreground: oklch(0 0 0);
-  --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0 0 0);
-  --input: oklch(0.5555 0 0);
-  --ring: oklch(0.7853 0.1041 274.7134);
-  --chart-1: oklch(0.5106 0.2301 276.9656);
-  --chart-2: oklch(0.7038 0.123 182.5025);
-  --chart-3: oklch(0.7686 0.1647 70.0804);
-  --chart-4: oklch(0.6559 0.2118 354.3084);
-  --chart-5: oklch(0.7227 0.192 149.5793);
-  --sidebar: oklch(0.9789 0.0082 121.6272);
-  --sidebar-foreground: oklch(0 0 0);
-  --sidebar-primary: oklch(0.5106 0.2301 276.9656);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.7686 0.1647 70.0804);
-  --sidebar-accent-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(0 0 0);
-  --sidebar-ring: oklch(0.7853 0.1041 274.7134);
-  --font-sans: DM Sans, sans-serif;
-  --font-serif: DM Sans, sans-serif;
-  --font-mono: Space Mono, monospace;
-  --radius: 1rem;
-  --shadow-x: 0px;
-  --shadow-y: 0px;
-  --shadow-blur: 0px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.05;
-  --shadow-color: #1a1a1a;
-  --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
-  --shadow-xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
-  --shadow-sm:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-md:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 2px 4px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-lg:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 4px 6px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-xl:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 8px 10px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.13);
+  --background: #f3eee1;
+  --foreground: #12141c;
+  --card: #ffffff;
+  --card-foreground: #12141c;
+  --popover: #ffffff;
+  --popover-foreground: #12141c;
+  --primary: #b8891a;
+  --primary-foreground: #12141c;
+  --secondary: #5e87a8;
+  --secondary-foreground: #ffffff;
+  --muted: #e8e2d3;
+  --muted-foreground: #5b5647;
+  --accent: #ece5d4;
+  --accent-foreground: #12141c;
+  --destructive: #9c3b2e;
+  --destructive-foreground: #ffffff;
+  --border: #12141c;
+  --input: #5b5647;
+  --ring: #b8891a;
+  --chart-1: #b8891a;
+  --chart-2: #5e87a8;
+  --chart-3: #9c3b2e;
+  --chart-4: #5b5647;
+  --chart-5: #12141c;
+  --sidebar: #f3eee1;
+  --sidebar-foreground: #12141c;
+  --sidebar-primary: #b8891a;
+  --sidebar-primary-foreground: #12141c;
+  --sidebar-accent: #ece5d4;
+  --sidebar-accent-foreground: #12141c;
+  --sidebar-border: #12141c;
+  --sidebar-ring: #b8891a;
+  --font-sans: Inter, sans-serif;
+  --font-heading: "Bricolage Grotesque", sans-serif;
+  --font-mono: "Space Mono", monospace;
+  --radius: 0.75rem;
+  --shadow-color: #12141c;
+  --shadow-2xs: 0px 1px 2px 0px rgb(18 20 28 / 0.03);
+  --shadow-xs: 0px 1px 3px 0px rgb(18 20 28 / 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgb(18 20 28 / 0.08);
+  --shadow: 0px 2px 6px -1px rgb(18 20 28 / 0.08);
+  --shadow-md: 0px 4px 10px -2px rgb(18 20 28 / 0.1);
+  --shadow-lg: 0px 8px 16px -4px rgb(18 20 28 / 0.12);
+  --shadow-xl: 0px 16px 28px -6px rgb(18 20 28 / 0.14);
+  --shadow-2xl: 0px 24px 40px -8px rgb(18 20 28 / 0.18);
   --tracking-normal: normal;
   --spacing: 0.25rem;
 }
 
 .dark {
-  --background: oklch(0 0 0);
-  --foreground: oklch(1 0 0);
-  --card: oklch(0.2455 0.0217 257.2823);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.2455 0.0217 257.2823);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.6801 0.1583 276.9349);
-  --primary-foreground: oklch(0 0 0);
-  --secondary: oklch(0.7845 0.1325 181.912);
-  --secondary-foreground: oklch(0 0 0);
-  --muted: oklch(0.3211 0 0);
-  --muted-foreground: oklch(0.8452 0 0);
-  --accent: oklch(0.879 0.1534 91.6054);
-  --accent-foreground: oklch(0 0 0);
-  --destructive: oklch(0.7106 0.1661 22.2162);
-  --destructive-foreground: oklch(0 0 0);
-  --border: oklch(0.4459 0 0);
-  --input: oklch(1 0 0);
-  --ring: oklch(0.6801 0.1583 276.9349);
-  --chart-1: oklch(0.6801 0.1583 276.9349);
-  --chart-2: oklch(0.7845 0.1325 181.912);
-  --chart-3: oklch(0.879 0.1534 91.6054);
-  --chart-4: oklch(0.7253 0.1752 349.7607);
-  --chart-5: oklch(0.8003 0.1821 151.711);
-  --sidebar: oklch(0 0 0);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.6801 0.1583 276.9349);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.879 0.1534 91.6054);
-  --sidebar-accent-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(1 0 0);
-  --sidebar-ring: oklch(0.6801 0.1583 276.9349);
-  --font-sans: DM Sans, sans-serif;
-  --font-serif: DM Sans, sans-serif;
-  --font-mono: Space Mono, monospace;
-  --radius: 1rem;
-  --shadow-x: 0px;
-  --shadow-y: 0px;
-  --shadow-blur: 0px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.05;
-  --shadow-color: #1a1a1a;
-  --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
-  --shadow-xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
-  --shadow-sm:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-md:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 2px 4px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-lg:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 4px 6px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-xl:
-    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05),
-    0px 8px 10px -1px hsl(0 0% 10.1961% / 0.05);
-  --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.13);
+  --background: #12141c;
+  --foreground: #f6f1e6;
+  --card: #f6f1e6;
+  --card-foreground: #12141c;
+  --popover: #1b1e29;
+  --popover-foreground: #f6f1e6;
+  --primary: #c9a227;
+  --primary-foreground: #12141c;
+  --secondary: #7fa8c9;
+  --secondary-foreground: #12141c;
+  --muted: #1e212c;
+  --muted-foreground: #9ca3b4;
+  --accent: #232838;
+  --accent-foreground: #f6f1e6;
+  --destructive: #c24a38;
+  --destructive-foreground: #ffffff;
+  --border: #262b3a;
+  --input: #2a2e3d;
+  --ring: #c9a227;
+  --chart-1: #c9a227;
+  --chart-2: #7fa8c9;
+  --chart-3: #c24a38;
+  --chart-4: #9ca3b4;
+  --chart-5: #f6f1e6;
+  --sidebar: #12141c;
+  --sidebar-foreground: #f6f1e6;
+  --sidebar-primary: #c9a227;
+  --sidebar-primary-foreground: #12141c;
+  --sidebar-accent: #232838;
+  --sidebar-accent-foreground: #f6f1e6;
+  --sidebar-border: #262b3a;
+  --sidebar-ring: #c9a227;
+  --shadow-2xs: 0px 1px 2px 0px rgb(0 0 0 / 0.2);
+  --shadow-xs: 0px 1px 3px 0px rgb(0 0 0 / 0.25);
+  --shadow-sm: 0px 1px 3px 0px rgb(0 0 0 / 0.3);
+  --shadow: 0px 2px 6px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0px 4px 10px -2px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0px 8px 16px -4px rgb(0 0 0 / 0.4);
+  --shadow-xl: 0px 16px 28px -6px rgb(0 0 0 / 0.45);
+  --shadow-2xl: 0px 24px 40px -8px rgb(0 0 0 / 0.5);
+}
+
+/* The ticket card's own ink-on-cream border stays constant regardless of
+   theme — it's a deliberate material choice, not a token that should shift
+   with dark mode the way the page chrome does. */
+.ticket-ink-border {
+  border-color: #12141c;
 }
 
 @theme inline {
@@ -166,7 +146,7 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --font-serif: var(--font-serif);
+  --font-heading: var(--font-heading);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -200,6 +180,41 @@
   }
 }
 
-h5 {
-  @apply text-xl font-extrabold;
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}
+
+/* Ticket stub: a horizontal tear-line between the ticket body and its stub,
+   built by punching circular notches out of the card with a radial
+   gradient — the signature material detail of the whole design. */
+.ticket-perforation {
+  position: relative;
+}
+.ticket-perforation::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 14px;
+  background-image: radial-gradient(
+    circle at 10px 0,
+    transparent 5px,
+    var(--background) 5.5px
+  );
+  background-size: 20px 14px;
+  background-repeat: repeat-x;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

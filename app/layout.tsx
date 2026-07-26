@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Space_Mono } from "next/font/google";
+import { Inter, Bricolage_Grotesque, Space_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
 import { Providers } from "@/components/providers";
@@ -8,15 +8,16 @@ import Footer from "@/components/footer";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const fontSans = DM_Sans({
+const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   preload: true,
 });
 
-const fontSerif = DM_Sans({
+const fontHeading = Bricolage_Grotesque({
   subsets: ["latin"],
-  variable: "--font-serif",
+  variable: "--font-heading",
+  weight: ["500", "700", "800"],
 });
 
 const fontMono = Space_Mono({
@@ -125,7 +126,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${fontSans.variable} ${fontHeading.variable} ${fontMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <Header />
         <main className="max-w-5xl mx-auto p-4 my-20 flex-1 w-full">

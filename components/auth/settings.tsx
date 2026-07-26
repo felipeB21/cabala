@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@/types/user";
 
 interface SettingsFormProps {
@@ -62,30 +63,32 @@ export default function SettingsForm({ session }: SettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-md">
-      <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl border border-border/50">
-        <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted border border-border/50 flex items-center justify-center shrink-0">
-          {session.image ? (
-            <Image
-              src={session.image}
-              alt="Imagen de perfil"
-              fill
-              sizes="56px"
-              className="object-cover"
-            />
-          ) : (
-            <span className="text-lg font-medium text-muted-foreground">
-              {session.name?.slice(0, 2).toUpperCase()}
-            </span>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-medium">{session.name}</p>
-          <p className="text-xs text-muted-foreground">@{session.username}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            La foto se actualiza desde Google, Twitch o Kick
-          </p>
-        </div>
-      </div>
+      <Card>
+        <CardContent className="flex items-center gap-4">
+          <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted border border-border/50 flex items-center justify-center shrink-0">
+            {session.image ? (
+              <Image
+                src={session.image}
+                alt="Imagen de perfil"
+                fill
+                sizes="56px"
+                className="object-cover"
+              />
+            ) : (
+              <span className="text-lg font-medium text-muted-foreground">
+                {session.name?.slice(0, 2).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-medium">{session.name}</p>
+            <p className="text-xs text-muted-foreground">@{session.username}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              La foto se actualiza desde Google, Twitch o Kick
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Nombre */}
       <div className="flex flex-col gap-1.5">
@@ -151,16 +154,18 @@ export default function SettingsForm({ session }: SettingsFormProps) {
         </p>
       </div>
 
-      <div className="flex flex-col gap-1 p-3 bg-muted/50 rounded-lg border border-border/50">
-        <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
-          Cuenta creada el
-        </span>
-        <span className="text-sm font-medium">
-          {format(new Date(session.createdAt), "d 'de' MMMM 'de' yyyy", {
-            locale: es,
-          })}
-        </span>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col gap-1">
+          <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
+            Cuenta creada el
+          </span>
+          <span className="text-sm font-medium">
+            {format(new Date(session.createdAt), "d 'de' MMMM 'de' yyyy", {
+              locale: es,
+            })}
+          </span>
+        </CardContent>
+      </Card>
 
       <Button type="submit" disabled={isUpdating} className="w-full sm:w-auto">
         {isUpdating ? "Guardando..." : "Guardar cambios"}

@@ -38,7 +38,7 @@ export function SearchClient() {
 
   return (
     <div className="flex flex-col gap-5">
-      <InputGroup>
+      <InputGroup className="rounded-md border border-input">
         <InputGroupAddon>
           <Search className="w-4 h-4" />
         </InputGroupAddon>
@@ -76,7 +76,7 @@ export function SearchClient() {
             <Link
               key={user.id}
               href={`/profile/${user.username}`}
-              className="flex items-center gap-3 bg-background border border-border/50 rounded-lg px-3.5 py-3 hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-3 bg-card border border-border/50 rounded-lg px-3.5 py-3 hover:bg-muted/50 transition-colors"
             >
               <div className="w-9 h-9 rounded-full bg-muted shrink-0 relative overflow-hidden flex items-center justify-center text-xs font-medium text-muted-foreground">
                 {user.image ? (
@@ -113,7 +113,7 @@ export function SearchClient() {
             <Link
               key={m.id}
               href={`/matches/${m.slug ?? m.id}`}
-              className="flex items-center gap-3 bg-background border border-border/50 rounded-lg px-3.5 py-3 hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-3 bg-card border border-border/50 rounded-lg px-3.5 py-3 hover:bg-muted/50 transition-colors"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-medium truncate">
@@ -130,7 +130,7 @@ export function SearchClient() {
                   "text-[11px] font-medium px-2 py-0.5 rounded-full",
                   m.status === "finished"
                     ? "bg-[#EAF3DE] text-[#3B6D11]"
-                    : "bg-blue-50 text-blue-600",
+                    : "bg-secondary/15 text-secondary",
                 )}
               >
                 {m.status === "finished" ? "Finalizado" : "Predecir"}

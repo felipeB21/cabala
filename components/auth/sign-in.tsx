@@ -28,9 +28,7 @@ export function SignIn() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-background text-black hover:bg-neutral-100">
-          Iniciar sesión
-        </Button>
+        <Button>Iniciar sesión</Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-sm">
@@ -56,7 +54,7 @@ export function SignIn() {
 
           <Button
             type="button"
-            className="w-full flex items-center justify-center gap-2  "
+            className="w-full flex items-center justify-center gap-2  bg-purple-500"
             onClick={() => handleSignIn("twitch")}
           >
             <Image src="/twitch.svg" alt="Twitch logo" width={16} height={16} />
@@ -65,7 +63,7 @@ export function SignIn() {
 
           <Button
             type="button"
-            className="w-full flex items-center justify-center gap-2 bg-black"
+            className="w-full flex items-center justify-center gap-2 bg-black text-white"
             onClick={() => handleSignIn("kick")}
           >
             <Image src="/kick.jpeg" alt="Kick logo" width={20} height={20} />

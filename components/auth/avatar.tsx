@@ -9,8 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User } from "@/types/user";
-import { Avatar } from "../ui/avatar";
-import Image from "next/image";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
@@ -20,14 +19,10 @@ export function DropdownAvatar({ user }: { user: User }) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar>
-            <Image
-              src={user.image as string}
-              alt="img"
-              width={32}
-              height={32}
-              className="rounded-full"
-              priority
-            />
+            <AvatarImage src={user.image ?? undefined} alt={user.name} />
+            <AvatarFallback>
+              {user.name?.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

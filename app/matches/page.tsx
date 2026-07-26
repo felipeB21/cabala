@@ -1,5 +1,6 @@
 import { getFinishedMatches, getScheduledMatches } from "@/actions/matches";
 import { MatchCard } from "@/components/match-card";
+import { StaggerFade, StaggerFadeItem } from "@/components/motion/stagger-fade";
 import { Trophy, Clock } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -29,17 +30,19 @@ export default async function Matches() {
           </p>
           <a
             href="#terminados"
-            className="text-sm text-blue-500 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             Ver partidos terminados ↓
           </a>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <StaggerFade className="flex flex-col gap-3">
           {matches.map((match) => (
-            <MatchCard key={match.id} match={match} />
+            <StaggerFadeItem key={match.id}>
+              <MatchCard match={match} />
+            </StaggerFadeItem>
           ))}
-        </div>
+        </StaggerFade>
       )}
 
       <div id="terminados" className="flex items-center gap-2 mb-4 mt-8">
@@ -54,11 +57,13 @@ export default async function Matches() {
           No hay partidos terminados por ahora
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <StaggerFade className="flex flex-col gap-3">
           {finishedMatches.map((match) => (
-            <MatchCard key={match.id} match={match} />
+            <StaggerFadeItem key={match.id}>
+              <MatchCard match={match} />
+            </StaggerFadeItem>
           ))}
-        </div>
+        </StaggerFade>
       )}
     </div>
   );

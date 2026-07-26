@@ -6,14 +6,14 @@ export default function Footer() {
     <footer className="border-t border-border/50 mt-16">
       <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-col items-center sm:items-start gap-1">
-          <Link href={"/"} className="flex items-center gap-1">
+          <Link href={"/"} className="flex items-center gap-1.5">
             <Image
               src={"/cabala.svg"}
               alt="Cábala Logo"
               width={12}
               height={12}
             />
-            <span className="text-sm font-medium">Cábala</span>
+            <span className="font-heading text-sm font-semibold">Cábala</span>
           </Link>
           <span className="text-xs text-muted-foreground">
             Predicciones de fútbol argentino
@@ -26,7 +26,7 @@ export default function Footer() {
           </span>
           <a
             href="mailto:bolgarfelipe@gmail.com"
-            className="text-sm font-medium text-blue-600 hover:underline"
+            className="text-sm font-medium text-primary hover:underline"
           >
             bolgarfelipe@gmail.com
           </a>
@@ -49,7 +49,7 @@ export default function Footer() {
             href="https://cafecito.app/felipebolgar"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-500 hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             ☕ Invitame un cafecito
           </a>

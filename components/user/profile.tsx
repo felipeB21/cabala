@@ -7,6 +7,8 @@ import { Flame, Target, Trophy, Check, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { StaggerFade, StaggerFadeItem } from "@/components/motion/stagger-fade";
 
 type UserData = Awaited<ReturnType<typeof getUserByUsername>>;
 type Prediction = NonNullable<UserData>["predictions"][number];
@@ -18,26 +20,22 @@ interface UserProfileClientProps {
 
 function PredictionBadge({ prediction }: { prediction: Prediction }) {
   if (prediction.isCorrect === null) {
-    return (
-      <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-muted text-muted-foreground">
-        Pendiente
-      </span>
-    );
+    return <Badge variant="secondary">Pendiente</Badge>;
   }
 
   if (prediction.isCorrect) {
     return (
-      <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-[#EAF3DE] text-[#3B6D11] flex items-center gap-1">
+      <Badge className="flex items-center gap-1">
         <Check className="w-3 h-3" />+{prediction.pointsWon} pts
-      </span>
+      </Badge>
     );
   }
 
   return (
-    <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-[#FCEBEB] text-[#A32D2D] flex items-center gap-1">
+    <Badge variant="destructive" className="flex items-center gap-1">
       <X className="w-3 h-3" />
       Incorrecto
-    </span>
+    </Badge>
   );
 }
 
@@ -95,7 +93,7 @@ export default function UserProfileClient({
       </div>
 
       <div className="text-center mt-2.5">
-        <h1 className="text-lg font-extrabold">{user.name}</h1>
+        <h1 className="font-heading text-xl font-extrabold">{user.name}</h1>
         <p className="text-sm text-muted-foreground">@{user.username}</p>
         {user.bio && (
           <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto leading-relaxed">
@@ -105,11 +103,11 @@ export default function UserProfileClient({
       </div>
 
       <div className="grid grid-cols-3 gap-2 mt-5">
-        <div className="bg-muted/50 rounded-lg p-3.5 flex flex-col items-center gap-1.5">
+        <div className="bg-card border border-border/50 rounded-lg p-3.5 flex flex-col items-center gap-1.5">
           <div className="w-8 h-8 rounded-full bg-[#EAF3DE] flex items-center justify-center">
             <Target className="w-4 h-4 text-[#3B6D11]" />
           </div>
-          <span className="text-xl font-medium">
+          <span className="font-mono text-lg font-medium">
             {user.stats?.correctPredictions ?? 0}
           </span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
@@ -117,11 +115,11 @@ export default function UserProfileClient({
           </span>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3.5 flex flex-col items-center gap-1.5">
+        <div className="bg-card border border-border/50 rounded-lg p-3.5 flex flex-col items-center gap-1.5">
           <div className="w-8 h-8 rounded-full bg-[#FAEEDA] flex items-center justify-center">
             <Trophy className="w-4 h-4 text-[#854F0B]" />
           </div>
-          <span className="text-xl font-medium">
+          <span className="font-mono text-lg font-medium">
             {(user.stats?.points ?? 0).toLocaleString()}
           </span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
@@ -129,11 +127,11 @@ export default function UserProfileClient({
           </span>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3.5 flex flex-col items-center gap-1.5">
+        <div className="bg-card border border-border/50 rounded-lg p-3.5 flex flex-col items-center gap-1.5">
           <div className="w-8 h-8 rounded-full bg-[#FAECE7] flex items-center justify-center">
             <Flame className="w-4 h-4 text-[#993C1D]" />
           </div>
-          <span className="text-xl font-medium">{user.stats?.streak ?? 0}</span>
+          <span className="font-mono text-lg font-medium">{user.stats?.streak ?? 0}</span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
             Racha
           </span>
@@ -146,37 +144,38 @@ export default function UserProfileClient({
             Últimas predicciones
           </p>
 
-          <div className="flex flex-col gap-2">
+          <StaggerFade className="flex flex-col gap-2">
             {user.predictions.map((pred) => (
-              <Link
-                key={pred.id}
-                href={`/matches/${pred.match.slug ?? pred.matchId}`}
-                className="bg-background border border-border/50 rounded-lg px-3.5 py-3 flex items-center justify-between gap-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium truncate">
-                    {pred.match.homeTeam.name} vs {pred.match.awayTeam.name}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Prediccion:{" "}
-                    <span className="font-extrabold">
-                      {predictionLabel(
-                        pred.prediction,
-                        pred.match.homeTeam.name,
-                        pred.match.awayTeam.name,
-                      )}
-                    </span>{" "}
-                    ·{" "}
-                    {formatDistanceToNow(new Date(pred.createdAt), {
-                      addSuffix: true,
-                      locale: es,
-                    })}
-                  </p>
-                </div>
-                <PredictionBadge prediction={pred} />
-              </Link>
+              <StaggerFadeItem key={pred.id}>
+                <Link
+                  href={`/matches/${pred.match.slug ?? pred.matchId}`}
+                  className="bg-card border border-border/50 rounded-lg px-3.5 py-3 flex items-center justify-between gap-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium truncate">
+                      {pred.match.homeTeam.name} vs {pred.match.awayTeam.name}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Predicción:{" "}
+                      <span className="font-semibold text-foreground">
+                        {predictionLabel(
+                          pred.prediction,
+                          pred.match.homeTeam.name,
+                          pred.match.awayTeam.name,
+                        )}
+                      </span>{" "}
+                      ·{" "}
+                      {formatDistanceToNow(new Date(pred.createdAt), {
+                        addSuffix: true,
+                        locale: es,
+                      })}
+                    </p>
+                  </div>
+                  <PredictionBadge prediction={pred} />
+                </Link>
+              </StaggerFadeItem>
             ))}
-          </div>
+          </StaggerFade>
         </>
       )}
     </div>
