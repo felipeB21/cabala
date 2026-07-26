@@ -351,6 +351,117 @@ export const matchComment = pgTable(
 );
 
 /* =========================
+   CAREER MODE
+========================= */
+
+export const careerClub = pgTable(
+  "career_club",
+  {
+    id: text("id").primaryKey(),
+
+    name: text("name").notNull(),
+
+    nationality: text("nationality").notNull(),
+
+    tier: text("tier").notNull(),
+
+    logo: text("logo"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("career_club_nationality_idx").on(table.nationality)],
+);
+
+export const careerPlayer = pgTable("career_player", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+
+  jerseyName: text("jersey_name").notNull(),
+
+  squadNumber: integer("squad_number").notNull(),
+
+  nationality: text("nationality").notNull(),
+
+  position: text("position").notNull(),
+
+  clubId: text("club_id")
+    .notNull()
+    .references(() => careerClub.id),
+
+  // `ovr` is a cached readout of the 5 attributes below (see computeOvr in
+  // lib/career.ts) — kept as a real column so leaderboard sorting stays a
+  // plain `ORDER BY ovr` instead of computing it for every row.
+  ovr: integer("ovr").default(60).notNull(),
+  pace: integer("pace").default(60).notNull(),
+  shooting: integer("shooting").default(60).notNull(),
+  passing: integer("passing").default(60).notNull(),
+  defending: integer("defending").default(60).notNull(),
+  physical: integer("physical").default(60).notNull(),
+
+  age: integer("age").default(17).notNull(),
+
+  seasonNumber: integer("season_number").default(1).notNull(),
+  matchesPlayedInSeason: integer("matches_played_in_season")
+    .default(0)
+    .notNull(),
+
+  appearances: integer("appearances").default(0).notNull(),
+  goals: integer("goals").default(0).notNull(),
+  assists: integer("assists").default(0).notNull(),
+
+  energy: integer("energy").default(100).notNull(),
+  morale: integer("morale").default(50).notNull(),
+  teamReputation: integer("team_reputation").default(50).notNull(),
+  fanReputation: integer("fan_reputation").default(50).notNull(),
+  relationshipStatus: text("relationship_status").default("soltero").notNull(),
+  suspended: boolean("suspended").default(false).notNull(),
+  injuredMatchesRemaining: integer("injured_matches_remaining")
+    .default(0)
+    .notNull(),
+
+  // JSON-serialized Trophy[] (see lib/career.ts) — a lightweight text column
+  // rather than a relational table, since it's a small, append-only list.
+  trophies: text("trophies").default("[]").notNull(),
+  // JSON-serialized string[] of every club name the player has represented.
+  clubsHistory: text("clubs_history").default("[]").notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const careerMatch = pgTable(
+  "career_match",
+  {
+    id: text("id").primaryKey(),
+
+    userId: text("user_id")
+      .notNull()
+      .references(() => careerPlayer.userId, { onDelete: "cascade" }),
+
+    seasonNumber: integer("season_number").notNull(),
+    matchNumber: integer("match_number").notNull(),
+
+    started: boolean("started").notNull(),
+    rating: integer("rating"),
+    goals: integer("goals").default(0).notNull(),
+    assists: integer("assists").default(0).notNull(),
+    redCard: boolean("red_card").default(false).notNull(),
+    injured: boolean("injured").default(false).notNull(),
+    ovrDelta: integer("ovr_delta").default(0).notNull(),
+    ovrAfter: integer("ovr_after").notNull(),
+    ageAtMatch: integer("age_at_match").notNull(),
+
+    clubResult: text("club_result").notNull(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("career_match_userId_idx").on(table.userId),
+    index("career_match_createdAt_idx").on(table.createdAt),
+  ],
+);
+
+/* =========================
    RELATIONS
 ========================= */
 
@@ -358,6 +469,10 @@ export const userRelations = relations(user, ({ many, one }) => ({
   stats: one(userStats, {
     fields: [user.id],
     references: [userStats.userId],
+  }),
+  career: one(careerPlayer, {
+    fields: [user.id],
+    references: [careerPlayer.userId],
   }),
   sessions: many(session),
 
@@ -463,5 +578,31 @@ export const userStatsRelations = relations(userStats, ({ one }) => ({
   user: one(user, {
     fields: [userStats.userId],
     references: [user.id],
+  }),
+}));
+
+export const careerClubRelations = relations(careerClub, ({ many }) => ({
+  players: many(careerPlayer),
+}));
+
+export const careerPlayerRelations = relations(
+  careerPlayer,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [careerPlayer.userId],
+      references: [user.id],
+    }),
+    club: one(careerClub, {
+      fields: [careerPlayer.clubId],
+      references: [careerClub.id],
+    }),
+    matches: many(careerMatch),
+  }),
+);
+
+export const careerMatchRelations = relations(careerMatch, ({ one }) => ({
+  player: one(careerPlayer, {
+    fields: [careerMatch.userId],
+    references: [careerPlayer.userId],
   }),
 }));
