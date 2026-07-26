@@ -63,15 +63,25 @@ export async function createPrediction(
     return { success: false, error: "Ya predijiste este partido" };
   }
 
-  await db.insert(prediction).values({
-    id: randomUUID(),
-    userId,
-    matchId: input.matchId,
-    prediction: input.prediction,
-    content: input.content ?? null,
-    pointsWon: 0,
-    isCorrect: null,
-  });
+  try {
+    await db.insert(prediction).values({
+      id: randomUUID(),
+      userId,
+      matchId: input.matchId,
+      prediction: input.prediction,
+      content: input.content ?? null,
+      pointsWon: 0,
+      isCorrect: null,
+    });
+  } catch (err) {
+    // The select-then-insert check above has a race window — a genuine
+    // double-submit can still hit the unique constraint. Surface the same
+    // friendly message instead of a raw 500 in that case.
+    if (err instanceof Error && "code" in err && err.code === "23505") {
+      return { success: false, error: "Ya predijiste este partido" };
+    }
+    throw err;
+  }
 
   await db
     .insert(userStats)

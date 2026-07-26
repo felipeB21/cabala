@@ -9,6 +9,7 @@ import {
   getPastLibertadores,
   getUpcomingSudamericana,
   getPastSudamericana,
+  getEventById,
 } from "@/lib/sportsdb";
 import {
   calculateMatchOdds,
@@ -17,7 +18,7 @@ import {
 } from "@/lib/odds";
 import type { SportsDBEvent, SportsDBTable } from "@/types/sportsdb";
 import { randomUUID } from "crypto";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, lt } from "drizzle-orm";
 
 function generateSlug(
   homeTeam: string,
@@ -193,8 +194,16 @@ export async function syncMatches(): Promise<{
       continue;
     }
 
-    const homeTable = tableMap.get(event.idHomeTeam) ?? defaultTable;
-    const awayTable = tableMap.get(event.idAwayTeam) ?? defaultTable;
+    // Table standings only exist for the domestic league — TheSportsDB
+    // doesn't expose one for Copa Libertadores/Sudamericana — so continental
+    // matches get `null` and odds fall back to form alone (see lib/odds.ts).
+    const isDomestic = event.competition === "liga";
+    const homeTable = isDomestic
+      ? (tableMap.get(event.idHomeTeam) ?? defaultTable)
+      : null;
+    const awayTable = isDomestic
+      ? (tableMap.get(event.idAwayTeam) ?? defaultTable)
+      : null;
     const homeForm = formMap.get(event.idHomeTeam) ?? defaultForm;
     const awayForm = formMap.get(event.idAwayTeam) ?? defaultForm;
 
@@ -239,6 +248,103 @@ export async function syncMatches(): Promise<{
   return { inserted, skipped };
 }
 
+type DbMatch = typeof match.$inferSelect;
+
+// Applies a resolved SportsDB event to one `scheduled` match: flips it to
+// "finished" and grades every prediction tied to it. Returns false (without
+// throwing) when the event's score isn't actually available yet, so the
+// match stays "scheduled" and gets retried on a later run.
+async function applyMatchResult(
+  dbMatch: DbMatch,
+  event: SportsDBEvent,
+): Promise<boolean> {
+  if (!event.intHomeScore || !event.intAwayScore) {
+    console.warn(
+      `⏳ Resultado aún no disponible para ${event.strHomeTeam} vs ${event.strAwayTeam}, se reintentará`,
+    );
+    return false;
+  }
+
+  const homeScore = Number(event.intHomeScore);
+  const awayScore = Number(event.intAwayScore);
+
+  if (Number.isNaN(homeScore) || Number.isNaN(awayScore)) {
+    console.warn(
+      `⚠️ Score inválido para ${event.strHomeTeam} vs ${event.strAwayTeam}: ${event.intHomeScore}-${event.intAwayScore}`,
+    );
+    return false;
+  }
+
+  const isDraw = homeScore === awayScore;
+  const winnerTeamId = isDraw
+    ? null
+    : homeScore > awayScore
+      ? dbMatch.homeTeamId
+      : dbMatch.awayTeamId;
+  const correctPrediction = isDraw
+    ? "draw"
+    : winnerTeamId === dbMatch.homeTeamId
+      ? "home"
+      : "away";
+
+  await db
+    .update(match)
+    .set({ status: "finished", homeScore, awayScore, isDraw, winnerTeamId })
+    .where(eq(match.id, dbMatch.id));
+
+  const predictions = await db
+    .select()
+    .from(prediction)
+    .where(eq(prediction.matchId, dbMatch.id));
+
+  for (const pred of predictions) {
+    const isCorrect = pred.prediction === correctPrediction;
+    const odds = isCorrect
+      ? pred.prediction === "home"
+        ? dbMatch.homeOdds
+        : pred.prediction === "away"
+          ? dbMatch.awayOdds
+          : dbMatch.drawOdds
+      : 0;
+    const pointsWon = isCorrect ? calculatePointsWon(odds) : 0;
+
+    await db
+      .update(prediction)
+      .set({ isCorrect, pointsWon })
+      .where(eq(prediction.id, pred.id));
+
+    const stats = await db
+      .select()
+      .from(userStats)
+      .where(eq(userStats.userId, pred.userId))
+      .limit(1);
+    if (stats.length === 0) continue;
+
+    const current = stats[0];
+    await db
+      .update(userStats)
+      .set({
+        points: current.points + pointsWon,
+        correctPredictions: isCorrect
+          ? current.correctPredictions + 1
+          : current.correctPredictions,
+        wrongPredictions: !isCorrect
+          ? current.wrongPredictions + 1
+          : current.wrongPredictions,
+        streak: isCorrect ? current.streak + 1 : 0,
+      })
+      .where(eq(userStats.userId, pred.userId));
+  }
+
+  return true;
+}
+
+// A "scheduled" match still stuck past this long after kickoff didn't turn
+// up in the bulk past-events lookup below (which only covers a rolling
+// recent window) — it gets a fallback individual lookup instead of being
+// stuck as "scheduled" forever.
+const STALE_MATCH_THRESHOLD_MS = 3 * 60 * 60 * 1000;
+
 export async function syncResults(): Promise<{ updated: number }> {
   const [pastRes, pastLibRes, pastSudRes] = await Promise.all([
     getPastMatches(),
@@ -252,88 +358,42 @@ export async function syncResults(): Promise<{ updated: number }> {
     ...(pastSudRes.events ?? []),
   ];
 
-  if (allPastEvents.length === 0) return { updated: 0 };
-
-  const apiIds = allPastEvents.map((e) => Number(e.idEvent));
-  const pendingMatches = await db
-    .select()
-    .from(match)
-    .where(and(inArray(match.apiId, apiIds), eq(match.status, "scheduled")));
-
-  if (pendingMatches.length === 0) return { updated: 0 };
-
   let updated = 0;
 
-  for (const dbMatch of pendingMatches) {
-    const event = allPastEvents.find(
-      (e) => Number(e.idEvent) === dbMatch.apiId,
-    );
-    if (!event) continue;
-
-    const homeScore = Number(event.intHomeScore ?? 0);
-    const awayScore = Number(event.intAwayScore ?? 0);
-    const isDraw = homeScore === awayScore;
-    const winnerTeamId = isDraw
-      ? null
-      : homeScore > awayScore
-        ? dbMatch.homeTeamId
-        : dbMatch.awayTeamId;
-    const correctPrediction = isDraw
-      ? "draw"
-      : winnerTeamId === dbMatch.homeTeamId
-        ? "home"
-        : "away";
-
-    await db
-      .update(match)
-      .set({ status: "finished", homeScore, awayScore, isDraw, winnerTeamId })
-      .where(eq(match.id, dbMatch.id));
-
-    const predictions = await db
+  if (allPastEvents.length > 0) {
+    const apiIds = allPastEvents.map((e) => Number(e.idEvent));
+    const pendingMatches = await db
       .select()
-      .from(prediction)
-      .where(eq(prediction.matchId, dbMatch.id));
+      .from(match)
+      .where(and(inArray(match.apiId, apiIds), eq(match.status, "scheduled")));
 
-    for (const pred of predictions) {
-      const isCorrect = pred.prediction === correctPrediction;
-      const odds = isCorrect
-        ? pred.prediction === "home"
-          ? dbMatch.homeOdds
-          : pred.prediction === "away"
-            ? dbMatch.awayOdds
-            : dbMatch.drawOdds
-        : 0;
-      const pointsWon = isCorrect ? calculatePointsWon(odds) : 0;
+    for (const dbMatch of pendingMatches) {
+      const event = allPastEvents.find(
+        (e) => Number(e.idEvent) === dbMatch.apiId,
+      );
+      if (!event) continue;
 
-      await db
-        .update(prediction)
-        .set({ isCorrect, pointsWon })
-        .where(eq(prediction.id, pred.id));
+      if (await applyMatchResult(dbMatch, event)) updated++;
+    }
+  }
 
-      const stats = await db
-        .select()
-        .from(userStats)
-        .where(eq(userStats.userId, pred.userId))
-        .limit(1);
-      if (stats.length === 0) continue;
+  const staleThreshold = new Date(Date.now() - STALE_MATCH_THRESHOLD_MS);
+  const stillScheduled = await db
+    .select()
+    .from(match)
+    .where(and(eq(match.status, "scheduled"), lt(match.startsAt, staleThreshold)));
 
-      const current = stats[0];
-      await db
-        .update(userStats)
-        .set({
-          points: current.points + pointsWon,
-          correctPredictions: isCorrect
-            ? current.correctPredictions + 1
-            : current.correctPredictions,
-          wrongPredictions: !isCorrect
-            ? current.wrongPredictions + 1
-            : current.wrongPredictions,
-          streak: isCorrect ? current.streak + 1 : 0,
-        })
-        .where(eq(userStats.userId, pred.userId));
+  for (const dbMatch of stillScheduled) {
+    const res = await getEventById(dbMatch.apiId);
+    const event = res.events?.[0];
+    if (!event) {
+      console.warn(
+        `⚠️ No se encontró el evento ${dbMatch.apiId} (${dbMatch.slug}) al buscarlo individualmente`,
+      );
+      continue;
     }
 
-    updated++;
+    if (await applyMatchResult(dbMatch, event)) updated++;
   }
 
   return { updated };

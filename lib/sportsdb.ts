@@ -43,12 +43,18 @@ export async function getPastMatches(): Promise<SportsDBEventsResponse> {
   return fetcher(`eventspastleague.php?id=${ARGENTINA_LEAGUE_ID}`);
 }
 
-export async function getLeagueTable(): Promise<SportsDBTableResponse> {
-  return fetcher(`lookuptable.php?l=${ARGENTINA_LEAGUE_ID}`);
+// `eventspastleague.php` only returns a rolling window of the most recent
+// events, so a match can scroll out of it before a cron run catches it.
+// This looks up a single event by id regardless of how old it is — used as
+// a fallback for matches stuck as "scheduled" well past kickoff.
+export async function getEventById(
+  apiId: string | number,
+): Promise<SportsDBEventsResponse> {
+  return fetcher(`lookupevent.php?id=${apiId}`);
 }
 
-export async function getTeamsByLeague(): Promise<SportsDBTeamsResponse> {
-  return fetcher(`search_all_teams.php?l=Argentinian+Primera+Division`);
+export async function getLeagueTable(): Promise<SportsDBTableResponse> {
+  return fetcher(`lookuptable.php?l=${ARGENTINA_LEAGUE_ID}`);
 }
 
 export async function getTeamById(
