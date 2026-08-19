@@ -69,6 +69,21 @@ export function PenaltyKickGame({ keeper, onResolve }: PenaltyKickGameProps) {
   const [phase, setPhase] = useState<Phase>("aiming");
   const [aim, setAim] = useState<{ x: number; y: number } | null>(null);
   const [outcome, setOutcome] = useState<PenaltyOutcome | null>(null);
+  const timeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // The kick resolves through a chain of timers, so an unmount mid-flight
+  // (career reset, navigation) would otherwise still fire `onResolve` against
+  // a career that no longer rolled this penalty.
+  useEffect(() => {
+    const pending = timeouts.current;
+    return () => {
+      for (const id of pending) clearTimeout(id);
+    };
+  }, []);
+
+  function later(fn: () => void, ms: number) {
+    timeouts.current.push(setTimeout(fn, ms));
+  }
 
   function handleAim(e: React.PointerEvent<HTMLDivElement>) {
     if (phase !== "aiming") return;
@@ -86,14 +101,14 @@ export function PenaltyKickGame({ keeper, onResolve }: PenaltyKickGameProps) {
     setPhase("flying");
 
     const resolved = resolvePenaltyKick(x, y, keeper);
-    setTimeout(() => {
+    later(() => {
       // Hit-stop: the ball has visually arrived — hold on the freeze-frame
       // for a beat before the sound/shake/banner sell the impact.
-      setTimeout(() => {
+      later(() => {
         setOutcome(resolved);
         setPhase("result");
         RESULT_CONFIG[resolved].sound();
-        setTimeout(() => onResolve(resolved), RESULT_HOLD_MS);
+        later(() => onResolve(resolved), RESULT_HOLD_MS);
       }, HIT_STOP_MS);
     }, FLIGHT_S * 1000);
   }

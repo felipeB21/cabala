@@ -30,19 +30,10 @@ const POSITIONS: { value: CareerPosition; label: string }[] = [
   { value: "forward", label: "Delantero" },
 ];
 
+// Still drives which clubs get offered (one candidate per tier, so the three
+// options aren't all the same calibre) and the simulation — but the tier
+// itself is never surfaced to the player, who just picks a club by name.
 const TIER_ORDER: ClubTier[] = ["strong", "mid", "weak"];
-
-const TIER_LABELS: Record<ClubTier, string> = {
-  strong: "Fuerte",
-  mid: "Medio",
-  weak: "Débil",
-};
-
-const TIER_BLURBS: Record<ClubTier, string> = {
-  strong: "Pelea cerrada por un lugar",
-  mid: "Te ganás el lugar jugando bien",
-  weak: "Titular garantizado",
-};
 
 interface FormState {
   jerseyName: string;
@@ -348,14 +339,8 @@ export function CareerCreationWizard({ onCreate }: CareerCreationWizardProps) {
                             logo={club.logo}
                             size={32}
                           />
-                          <span className="text-[10px] font-medium text-muted-foreground">
-                            {TIER_LABELS[tier]}
-                          </span>
                           <span className="text-[10px] font-medium leading-tight">
                             {club.name}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground leading-tight">
-                            {TIER_BLURBS[tier]}
                           </span>
                         </button>
                       );

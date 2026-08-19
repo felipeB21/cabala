@@ -120,20 +120,21 @@ export const EMPTY_ATTRIBUTE_DELTAS: CareerAttributes = {
 };
 
 // Tiered rating bands (not a flat ±1) so a full career — only ~16 matches,
-// given SEASON_LENGTH=2 and forced retirement at 32 — can realistically
-// climb from STARTING_OVR=60 into the high 80s/90s for a player who starts
-// consistently and performs, rather than plateauing in the 70s. Goal bonus
-// doubled for the same reason; a career is too short for a flat +1 to add
-// up to much.
+// given SEASON_LENGTH=2 and forced retirement at 32 — can climb from
+// STARTING_OVR=60 into the high 80s/90s. The bands are deliberately
+// generous and the thresholds low: an average match (rating ~6) should
+// still feel like progress, and only a genuinely bad one costs anything.
+// Goal/assist bonuses are large for the same reason — a career is too short
+// for small increments to add up.
 export const GOAL_OVR_BONUS = 2;
 const ASSIST_OVR_BONUS = 1;
 
 const RATING_GROWTH_TIERS: { min: number; primary: number; secondary: number }[] = [
-  { min: 8.5, primary: 4, secondary: 2 },
-  { min: 7.5, primary: 3, secondary: 1 },
+  { min: 8.5, primary: 3, secondary: 2 },
+  { min: 7.5, primary: 2, secondary: 1 },
   { min: 6.5, primary: 2, secondary: 1 },
   { min: 5.5, primary: 1, secondary: 0 },
-  { min: 4.5, primary: -1, secondary: 0 },
+  { min: 4.5, primary: 0, secondary: 0 },
 ];
 
 function computeAttributeDeltas(
@@ -143,7 +144,7 @@ function computeAttributeDeltas(
   assists: number,
 ): CareerAttributes {
   const tier =
-    RATING_GROWTH_TIERS.find((t) => rating >= t.min) ?? { primary: -2, secondary: -1 };
+    RATING_GROWTH_TIERS.find((t) => rating >= t.min) ?? { primary: -1, secondary: 0 };
 
   const primary = POSITION_PRIMARY_ATTRIBUTES[position];
   const secondary = secondaryAttributesFor(position);
@@ -222,6 +223,22 @@ const BENCH_ENERGY_RECOVERY = 5;
 const MIN_MATCH_ENERGY_COST = 8;
 const MAX_MATCH_ENERGY_COST = 16;
 
+// The off-season break. Without it energy only ever recovered from being
+// benched, which stopped happening once getStarterProbability started
+// returning 1 for any non-terrible player — energy then hit 0 by ~match 10
+// and stayed there for the rest of every career, dragging ratings down and
+// pushing the fatigue-driven injury roll (see rollInjury) permanently high.
+// Deliberately a little under one season's drain (~24 at SEASON_LENGTH = 2)
+// so energy still trends down over a career and stays a real constraint the
+// player manages — rather than a decorative bar that never moves.
+export const SEASON_ENERGY_RECOVERY = 20;
+
+// Below this the player is too spent to be risked: the match becomes a
+// forced rest (see `restMatch` in hooks/use-local-career.ts) and life-event
+// options that would cost more energy than remains are locked out.
+export const LOW_ENERGY_THRESHOLD = 25;
+export const REST_ENERGY_RECOVERY = 45;
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -230,21 +247,31 @@ function clamp01(value: number): number {
   return clamp(value, 0, 1);
 }
 
+// The OVR at which the manager considers you an automatic starter — above
+// it you always play, below it you fight for the shirt. Being benched is
+// meant to be a rare punishment for a genuinely bad player, not the default
+// experience, so even a big club's bar sits just above STARTING_OVR.
+const AUTO_STARTER_OVR: Record<ClubTier, number> = {
+  strong: 62,
+  mid: 55,
+  weak: MIN_OVR,
+};
+
 export function getStarterProbability(
   tier: ClubTier,
   ovr: number,
   teamReputation = 50,
 ): number {
-  const growth = clamp((ovr - STARTING_OVR) / 100, 0, 1);
-  // A manager who trusts you plays you more — a small signed nudge, not a
-  // dominant factor next to OVR growth.
-  const reputationNudge = clamp((teamReputation - 50) / 100, -0.15, 0.15);
+  const threshold = AUTO_STARTER_OVR[tier];
+  if (ovr >= threshold) return 1;
 
-  if (tier === "weak") return 1;
-  if (tier === "mid") {
-    return clamp(0.45 + growth * 0.45 + reputationNudge, 0, 0.9);
-  }
-  return clamp(0.2 + growth * 0.2 + reputationNudge, 0, 0.4);
+  // Below the bar, odds scale from "barely ever plays" at MIN_OVR up to the
+  // threshold. A manager who trusts you plays you more — a small signed
+  // nudge, not a dominant factor next to OVR.
+  const reputationNudge = clamp((teamReputation - 50) / 200, -0.1, 0.1);
+  const progress = (ovr - MIN_OVR) / (threshold - MIN_OVR);
+
+  return clamp(0.35 + progress * 0.6 + reputationNudge, 0.2, 1);
 }
 
 function rollStarter(

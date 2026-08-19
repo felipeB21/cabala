@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ import type {
   SimulateResult,
 } from "@/hooks/use-local-career";
 import {
+  LOW_ENERGY_THRESHOLD,
   RETIREMENT_AGE,
   SEASON_LENGTH,
   type ClubTier,
@@ -46,6 +47,7 @@ import {
 interface CareerDashboardProps {
   career: LocalCareer;
   simulateNextMatch: (allClubs: LocalCareerClub[]) => SimulateResult | null;
+  restMatch: (allClubs: LocalCareerClub[]) => LocalCareerMatch | null;
   resolvePenaltyOutcome: (
     outcome: PenaltyOutcome,
     allClubs: LocalCareerClub[],
@@ -54,6 +56,10 @@ interface CareerDashboardProps {
   resolveLifeEvent: (choice: "A" | "B") => void;
   markSaved: () => void;
   resetCareer: () => void;
+  // False while a local/server career conflict is still unresolved — the
+  // debounced auto-save would otherwise overwrite the saved career before
+  // the player has answered which one to keep.
+  canAutoSave: boolean;
 }
 
 const POSITION_LABELS: Record<string, string> = {
@@ -61,12 +67,6 @@ const POSITION_LABELS: Record<string, string> = {
   defender: "Defensor",
   midfielder: "Mediocampista",
   forward: "Delantero",
-};
-
-const TIER_LABELS: Record<string, string> = {
-  strong: "Fuerte",
-  mid: "Medio",
-  weak: "Débil",
 };
 
 const NATIONALITY_LABELS: Record<string, string> = {
@@ -185,16 +185,20 @@ function SeasonProgress({ value }: { value: number }) {
 export function CareerDashboard({
   career,
   simulateNextMatch,
+  restMatch,
   resolvePenaltyOutcome,
   resolveOffer,
   resolveLifeEvent,
   markSaved,
   resetCareer,
+  canAutoSave,
 }: CareerDashboardProps) {
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const { mutate: saveCareer, isPending: isSaving } = useSaveCareer();
-  const { data: allClubs } = useAllCareerClubs();
+  const { data: allClubs, isPending: clubsPending } = useAllCareerClubs();
   const [lastResult, setLastResult] = useState<LocalCareerMatch | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [confirmingReset, setConfirmingReset] = useState(false);
   const [pendingEvents, setPendingEvents] = useState<MatchEventType[]>([]);
   const prevTrophyCount = useRef(career.trophies.length);
 
@@ -206,6 +210,91 @@ export function CareerDashboard({
     }
     prevTrophyCount.current = career.trophies.length;
   }, [career.trophies]);
+
+  const savePayload = useMemo(
+    () => ({
+      jerseyName: career.jerseyName,
+      squadNumber: career.squadNumber,
+      nationality: career.nationality,
+      position: career.position,
+      clubId: career.club.id,
+      ovr: career.ovr,
+      attributes: career.attributes,
+      age: career.age,
+      seasonNumber: career.seasonNumber,
+      matchesPlayedInSeason: career.matchesPlayedInSeason,
+      appearances: career.appearances,
+      goals: career.goals,
+      assists: career.assists,
+      energy: career.energy,
+      morale: career.morale,
+      teamReputation: career.teamReputation,
+      fanReputation: career.fanReputation,
+      relationshipStatus: career.relationshipStatus,
+      suspended: career.suspended,
+      injuredMatchesRemaining: career.injuredMatchesRemaining,
+      matches: career.matches,
+      trophies: career.trophies,
+      clubsHistory: career.clubsHistory,
+    }),
+    [career],
+  );
+
+  // Signature of what the server actually stores — deliberately excludes
+  // `linkedToServer` (set by markSaved right after a save, which would
+  // otherwise re-dirty the state and loop) and the pending offer/event/
+  // penalty fields, which are local-only.
+  const saveSignature = JSON.stringify(savePayload);
+  const savedSignature = useRef<string | null>(null);
+  // A payload the server rejected. Without this, every later state change
+  // retries the same doomed payload and fires another error toast; the
+  // manual button stays exempt so a retry is always available.
+  const failedSignature = useRef<string | null>(null);
+
+  // One automatic save per career, at retirement — the whole point of the
+  // snapshot is the finished career on the leaderboard, and saving on every
+  // state change meant a full upsert plus a delete-and-reinsert of the match
+  // history after every single match. Mid-career progress lives in
+  // localStorage; the manual button is there for anyone who wants a server
+  // copy sooner. Silent on success, errors still surface.
+  useEffect(() => {
+    if (
+      !career.retired ||
+      !canAutoSave ||
+      !session?.user ||
+      savedSignature.current === saveSignature ||
+      failedSignature.current === saveSignature
+    ) {
+      return;
+    }
+
+    saveCareer(savePayload, {
+      onSuccess: (res) => {
+        if (!res.success) {
+          failedSignature.current = saveSignature;
+          setSaveFailed(true);
+          toast.error(res.error ?? "Error al guardar la carrera");
+          return;
+        }
+        savedSignature.current = saveSignature;
+        failedSignature.current = null;
+        setSaveFailed(false);
+        markSaved();
+      },
+      onError: () => {
+        failedSignature.current = saveSignature;
+        setSaveFailed(true);
+      },
+    });
+  }, [
+    career.retired,
+    canAutoSave,
+    session,
+    saveSignature,
+    savePayload,
+    saveCareer,
+    markSaved,
+  ]);
 
   function mappedClubs(): LocalCareerClub[] {
     return (allClubs ?? []).map((c) => ({
@@ -245,6 +334,14 @@ export function CareerDashboard({
     applyMatchResult(result.match);
   }
 
+  function handleRest() {
+    const match = restMatch(mappedClubs());
+    if (!match) return;
+
+    toast.success("Descansaste este partido — recuperaste energía");
+    applyMatchResult(match);
+  }
+
   function handlePenaltyResolve(outcome: PenaltyOutcome) {
     const match = resolvePenaltyOutcome(outcome, mappedClubs());
     if (!match) return;
@@ -253,52 +350,31 @@ export function CareerDashboard({
   }
 
   function handleSave() {
-    saveCareer(
-      {
-        jerseyName: career.jerseyName,
-        squadNumber: career.squadNumber,
-        nationality: career.nationality,
-        position: career.position,
-        clubId: career.club.id,
-        ovr: career.ovr,
-        attributes: career.attributes,
-        age: career.age,
-        seasonNumber: career.seasonNumber,
-        matchesPlayedInSeason: career.matchesPlayedInSeason,
-        appearances: career.appearances,
-        goals: career.goals,
-        assists: career.assists,
-        energy: career.energy,
-        morale: career.morale,
-        teamReputation: career.teamReputation,
-        fanReputation: career.fanReputation,
-        relationshipStatus: career.relationshipStatus,
-        suspended: career.suspended,
-        injuredMatchesRemaining: career.injuredMatchesRemaining,
-        matches: career.matches,
-        trophies: career.trophies,
-        clubsHistory: career.clubsHistory,
+    saveCareer(savePayload, {
+      onSuccess: (res) => {
+        if (!res.success) {
+          setSaveFailed(true);
+          toast.error(res.error ?? "Error al guardar la carrera");
+          return;
+        }
+        savedSignature.current = saveSignature;
+        failedSignature.current = null;
+        setSaveFailed(false);
+        markSaved();
+        toast.success("¡Carrera guardada!");
       },
-      {
-        onSuccess: (res) => {
-          if (!res.success) {
-            toast.error(res.error ?? "Error al guardar la carrera");
-            return;
-          }
-          markSaved();
-          toast.success("¡Carrera guardada!");
-        },
-        onError: () => {
-          toast.error("Error inesperado. Intentá de nuevo.");
-        },
+      onError: () => {
+        setSaveFailed(true);
+        toast.error("Error inesperado. Intentá de nuevo.");
       },
-    );
+    });
   }
 
   function handleNewCareer() {
     resetCareer();
   }
 
+  const exhausted = career.energy < LOW_ENERGY_THRESHOLD;
   const seasonRolledOver = lastResult?.matchNumber === SEASON_LENGTH;
   const history = [...career.matches].reverse();
   const seasonProgress = (career.matchesPlayedInSeason / SEASON_LENGTH) * 100;
@@ -306,18 +382,34 @@ export function CareerDashboard({
   const saveButton = !sessionPending && (
     <div>
       {session?.user ? (
-        <Button
-          onClick={handleSave}
-          disabled={isSaving}
-          variant="secondary"
-          className="w-full"
-        >
-          {isSaving
-            ? "Guardando..."
-            : career.linkedToServer
-              ? "Actualizar carrera guardada"
-              : "Guardar carrera"}
-        </Button>
+        <div className="flex flex-col gap-1.5">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            variant="secondary"
+            className="w-full"
+          >
+            {isSaving
+              ? "Guardando..."
+              : career.linkedToServer
+                ? "Actualizar carrera guardada"
+                : "Guardar carrera"}
+          </Button>
+          {/* The automatic save only fires at retirement, so the player needs
+              to know their progress is local until then — otherwise "did it
+              save?" is unanswerable. */}
+          <p className="text-[11px] text-muted-foreground text-center">
+            {isSaving
+              ? "Guardando..."
+              : saveFailed
+                ? "No se pudo guardar — tocá para reintentar"
+                : career.retired
+                  ? "Carrera guardada en tu cuenta"
+                  : career.linkedToServer
+                    ? "Guardada — se actualiza sola al retirarte"
+                    : "Se guarda al retirarte, o tocá para guardar ahora"}
+          </p>
+        </div>
       ) : (
         <div className="flex items-center justify-between gap-3 bg-muted/50 rounded-lg px-3.5 py-3">
           <p className="text-[11px] text-muted-foreground">
@@ -361,9 +453,36 @@ export function CareerDashboard({
             </p>
           )}
 
-          <Button onClick={handleNewCareer} className="w-full">
-            Empezar nueva carrera
-          </Button>
+          {confirmingReset ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] text-destructive text-center">
+                Vas a reemplazar la carrera guardada de {career.jerseyName}. No
+                se puede deshacer.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setConfirmingReset(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={handleNewCareer}>Sí, empezar de nuevo</Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              // A saved career is about to be overwritten by the first
+              // auto-save of the new one, so make that an explicit choice.
+              onClick={() =>
+                session?.user && career.linkedToServer
+                  ? setConfirmingReset(true)
+                  : handleNewCareer()
+              }
+              className="w-full"
+            >
+              Empezar nueva carrera
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -404,7 +523,7 @@ export function CareerDashboard({
               <p className="text-[12px] text-muted-foreground truncate">
                 {POSITION_LABELS[career.position]} ·{" "}
                 {NATIONALITY_LABELS[career.nationality] ?? career.nationality} ·{" "}
-                {career.club.name} ({TIER_LABELS[career.club.tier]})
+                {career.club.name}
               </p>
             </div>
           </div>
@@ -530,6 +649,11 @@ export function CareerDashboard({
                   <Button
                     variant="secondary"
                     className="h-auto py-2.5 flex-col items-start gap-0.5"
+                    // No energy left to spend on it — the trade-off has to
+                    // be affordable to be a real choice.
+                    disabled={
+                      career.energy + career.pendingLifeEvent.optionA.energyDelta < 0
+                    }
                     onClick={() => resolveLifeEvent("A")}
                   >
                     <span>{career.pendingLifeEvent.optionA.label}</span>
@@ -543,6 +667,9 @@ export function CareerDashboard({
                   <Button
                     variant="secondary"
                     className="h-auto py-2.5 flex-col items-start gap-0.5"
+                    disabled={
+                      career.energy + career.pendingLifeEvent.optionB.energyDelta < 0
+                    }
                     onClick={() => resolveLifeEvent("B")}
                   >
                     <span>{career.pendingLifeEvent.optionB.label}</span>
@@ -569,9 +696,6 @@ export function CareerDashboard({
                     className="flex flex-col items-center gap-1.5 rounded-lg border border-border/60 px-2 py-3 text-center bg-background hover:bg-muted transition-colors"
                   >
                     <ClubCrest name={club.name} tier={club.tier} logo={club.logo} size={32} />
-                    <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
-                      {TIER_LABELS[club.tier]}
-                    </span>
                     <span className="text-[10px] font-medium leading-tight">
                       {club.name}
                     </span>
@@ -580,18 +704,49 @@ export function CareerDashboard({
               </div>
               <button
                 onClick={() => resolveOffer(null)}
-                className="text-[12px] text-muted-foreground underline text-center hover:text-foreground transition-colors"
+                className="flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-2.5 text-[12px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
+                <ClubCrest
+                  name={career.club.name}
+                  tier={career.club.tier}
+                  logo={career.club.logo}
+                  size={20}
+                />
                 Quedarme en {career.club.name}
               </button>
             </div>
           ) : (
-            <Button onClick={handleSimulate} className="w-full">
-              Simular próximo partido
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={exhausted ? handleRest : handleSimulate}
+                // The club list feeds `pickTransferOffers` at a season
+                // rollover — simulating before it lands silently turns that
+                // transfer window into a life event, with nothing to tell the
+                // player they lost it.
+                disabled={clubsPending}
+                className="w-full"
+              >
+                {clubsPending
+                  ? "Cargando clubes..."
+                  : exhausted
+                    ? "Descansar y recuperarte"
+                    : "Simular próximo partido"}
+              </Button>
+              {exhausted && (
+                <p className="text-[11px] text-destructive text-center">
+                  Estás fundido ({career.energy} de energía) — el técnico no te
+                  arriesga. Descansá este partido para recuperarte.
+                </p>
+              )}
+            </div>
           )}
 
-          {!career.pendingOffers && !career.pendingLifeEvent && saveButton}
+          {/* Always visible. A season rollover always sets either
+              pendingOffers or a pendingLifeEvent, and with SEASON_LENGTH = 2
+              that is every other match — hiding the save control there meant
+              it was gone exactly when the player had just finished a season
+              and wanted to save. */}
+          {saveButton}
 
           {lastResult && pendingEvents.length === 0 && (
             <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3.5 py-2.5 text-[12px]">

@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AGE_STEP,
   EMPTY_ATTRIBUTE_DELTAS,
   GOAL_OVR_BONUS,
+  REST_ENERGY_RECOVERY,
   RETIREMENT_AGE,
+  SEASON_ENERGY_RECOVERY,
   SEASON_LENGTH,
   STARTING_AGE,
   STARTING_OVR,
@@ -195,7 +197,17 @@ function finalizeMatch(
     sim.attributeDeltas,
   );
   const ovrAfter = computeOvr(nextAttributes, career.position);
-  const nextEnergy = clamp(career.energy + sim.energyDelta, 0, 100);
+  const seasonRolledOver = matchesPlayedInSeason >= SEASON_LENGTH;
+
+  // The off-season break lands with the rollover, before the new season's
+  // first match reads it.
+  const nextEnergy = clamp(
+    career.energy +
+      sim.energyDelta +
+      (seasonRolledOver ? SEASON_ENERGY_RECOVERY : 0),
+    0,
+    100,
+  );
   const nextMorale = clamp(career.morale + sim.moraleDelta, 0, 100);
   const nextTeamReputation = clamp(
     career.teamReputation + sim.teamReputationDelta,
@@ -207,8 +219,6 @@ function finalizeMatch(
     0,
     100,
   );
-
-  const seasonRolledOver = matchesPlayedInSeason >= SEASON_LENGTH;
 
   let nextAge = career.age;
   let retired: boolean = career.retired;
@@ -310,6 +320,14 @@ function finalizeMatch(
 export function useLocalCareer() {
   const [career, setCareer] = useState<LocalCareer | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  // Identity of the career object the last simulation ran from. Both
+  // simulate/resolve callbacks close over `career`, so two clicks inside a
+  // single render frame would simulate twice from the same state and the
+  // second `setCareer` would overwrite the first — the player sees two
+  // cutscenes but only one match is recorded. Every committed simulation
+  // produces a new object identity, so matching this ref means "stale
+  // closure, already handled" and never blocks a legitimate call.
+  const lastSimulatedFrom = useRef<LocalCareer | null>(null);
 
   useEffect(() => {
     // localStorage isn't available during SSR, so the initial state must be
@@ -360,10 +378,13 @@ export function useLocalCareer() {
         career.retired ||
         career.pendingOffers ||
         career.pendingLifeEvent ||
-        career.pendingPenalty
+        career.pendingPenalty ||
+        lastSimulatedFrom.current === career
       ) {
         return null;
       }
+
+      lastSimulatedFrom.current = career;
 
       // Serving a red-card suspension: sit out this match entirely, no
       // starter roll, no rating. Still routed through `finalizeMatch` (as a
@@ -488,9 +509,69 @@ export function useLocalCareer() {
     [career],
   );
 
+  // A deliberate sit-out to recover. Same zero-impact shape as serving a
+  // suspension — routed through `finalizeMatch` so the match still counts
+  // toward the season, ages the player, and can trigger a rollover — but it
+  // costs standing with the manager, so resting isn't free.
+  const restMatch = useCallback(
+    (allClubs: LocalCareerClub[]): LocalCareerMatch | null => {
+      if (
+        !career ||
+        career.retired ||
+        career.pendingOffers ||
+        career.pendingLifeEvent ||
+        career.pendingPenalty ||
+        lastSimulatedFrom.current === career
+      ) {
+        return null;
+      }
+
+      lastSimulatedFrom.current = career;
+
+      const sim: SimulateMatchResult = {
+        started: false,
+        ratingX10: null,
+        goals: 0,
+        assists: 0,
+        redCard: false,
+        attributeDeltas: EMPTY_ATTRIBUTE_DELTAS,
+        ovrDelta: 0,
+        ovrAfter: career.ovr,
+        clubResult: "draw",
+        energyDelta: REST_ENERGY_RECOVERY,
+        moraleDelta: -2,
+        teamReputationDelta: -2,
+        fanReputationDelta: 0,
+        injured: false,
+        injuryMatchesOut: 0,
+      };
+
+      const { next, matchRecord } = finalizeMatch(
+        career,
+        sim,
+        career.matchesPlayedInSeason + 1,
+        allClubs,
+      );
+
+      setCareer(next);
+      persistToStorage(next);
+
+      return matchRecord;
+    },
+    [career],
+  );
+
   const resolvePenaltyOutcome = useCallback(
     (outcome: PenaltyOutcome, allClubs: LocalCareerClub[]): LocalCareerMatch | null => {
-      if (!career || !career.pendingPenalty) return null;
+      if (
+        !career ||
+        !career.pendingPenalty ||
+        lastSimulatedFrom.current === career
+      ) {
+        return null;
+      }
+
+      lastSimulatedFrom.current = career;
 
       const { sim: baseSim, matchesPlayedInSeason } = career.pendingPenalty;
 
@@ -601,6 +682,7 @@ export function useLocalCareer() {
     hydrated,
     createCareer,
     simulateNextMatch,
+    restMatch,
     resolvePenaltyOutcome,
     resolveOffer,
     resolveLifeEvent,
